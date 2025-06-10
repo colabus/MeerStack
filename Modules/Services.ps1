@@ -1,0 +1,38 @@
+function Check-Services {
+    param ($config)
+
+    $timestamp = Get-Date -Format "yyyy-MM-dd HH:mm:ss"
+    $services = $config.Checks.Services.ServicesToCheck
+
+    # Build an XML document
+    $xmlContent = "<Metrics><Services><Timestamp>$($timestamp)</Timestamp>`n"
+
+    foreach ($svc in $services) {
+        $serviceObj = Get-Service -Name $svc -ErrorAction SilentlyContinue
+
+        if ($null -ne $serviceObj) {
+            $xmlContent += @"
+<Service>
+    <Name>$($serviceObj.Name)</Name>
+    <DisplayName>$($serviceObj.DisplayName)</DisplayName>
+    <Status>$($serviceObj.Status)</Status>
+    <StartType>$($serviceObj.StartType)</StartType>
+</Service>
+"@
+        } else {
+            $xmlContent += @"
+  <Service>
+    <Name>$svc</Name>
+    <Error>Service not found.</Error>
+  </Service>
+"@
+        }
+    }
+
+    $xmlContent += "</Services></Metrics>"
+
+    # Convert string to XML object
+    $xml = [xml]$xmlContent
+
+    Write-Log -Component "Services" -XmlData $xml
+}
