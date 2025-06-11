@@ -35,5 +35,5 @@ function Check-Disks {
 
     $xml = [xml]$xmlContent
 
-    Write-Log -Component "Disks" -XmlData $xml
+    Check-Log -Component "Disks" -XmlData $xml
 }

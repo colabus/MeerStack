@@ -1,9 +1,10 @@
 $config = @{
     Checks = @{
-        CPU = @{ Enabled = $true; Interval = 300 }
-        Memory = @{ Enabled = $true; Interval = 300 }
-        Services = @{ Enabled = $true; Interval = 60; ServicesToCheck = @("Spooler", "W32Time", "FakeServiceName") }
+        CPU = @{ Enabled = $true; Interval = 5 }
+        Memory = @{ Enabled = $true; Interval = 10 }
+        Services = @{ Enabled = $true; Interval = 20; ServicesToCheck = @("Spooler", "W32Time", "FakeServiceName") }
+        Bogus = @{ Enabled = $true; Interval = 5 }
     }
 
-    LocalLogPath = "C:\MeerStack\Logs"
+    LocalPath = "C:\MeerStack"
 }

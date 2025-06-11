@@ -38,31 +38,48 @@ $debug = 1
 
 . ".\MeerStackModules.ps1"
 
-function Write-Log {
-    param (
-        [string]$Component,
-        [xml]$XmlData
-    )
+. ".\MeerStackMethods.ps1"
 
-    $xmlString = $XmlData.OuterXml
+$lastRun = @{}
 
-    $line = "$xmlString"
+while ($true) {
+    $now = Get-Date
 
-    $dateStamp = Get-Date -Format "yyyyMMddHHmmss"
+    foreach ($check in $config.Checks.Keys) {
+        $checkConfig = $config.Checks[$check]
 
-    $logFile = Join-Path $config.LocalLogPath "$Component-$dateStamp.log"
+        if (-not $checkConfig.Enabled) {
+            continue
+        }
 
-    # Ensure the directory exists
-    $logDir = Split-Path -Path $logFile -Parent
-    if (-not (Test-Path -Path $logDir)) {
-        New-Item -Path $logDir -ItemType Directory -Force | Out-Null
+        $interval = $checkConfig.Interval
+        $last = $lastRun[$check]
+
+        if (-not $last -or ($now - $last).TotalSeconds -ge $interval) {
+            $functionName = "Check-$check"
+            
+            if (Get-Command $functionName -ErrorAction SilentlyContinue) {
+                try {
+                    MeerStack-Log -Status "INFO " -Message "Calling.. $functionName .."
+
+                    & $functionName $config
+                    $lastRun[$check] = $now
+                } catch {
+                    MeerStack-Log -Status "ERROR" -Message "Error running $($functionName): $_"
+                }
+            } else {
+                MeerStack-Log -Status "ERROR" -Message "Check function '$functionName' not found."
+            }
+        }
     }
 
-    Add-Content -Path $logFile -Value $line
+    Start-Sleep -Seconds 5
 }
 
+<#
 Check-CPU($config)
 Check-Memory($config)
 Check-Services($config)
 Check-Certificates($config)
 Check-Disks($config)
+#>

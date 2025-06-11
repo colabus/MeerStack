@@ -20,5 +20,5 @@ function Check-Memory {
 </Metrics>
 "@
 
-    Write-Log -Component "Memory" -XmlData $xml
+    Check-Log -Component "Memory" -XmlData $xml
 }

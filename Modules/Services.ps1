@@ -35,5 +35,5 @@ function Check-Services {
     # Convert string to XML object
     $xml = [xml]$xmlContent
 
-    Write-Log -Component "Services" -XmlData $xml
+    Check-Log -Component "Services" -XmlData $xml
 }

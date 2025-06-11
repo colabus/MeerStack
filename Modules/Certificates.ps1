@@ -41,5 +41,5 @@ function Check-Certificates {
 
     $xml = [xml]$xmlContent
 
-    Write-Log -Component "Certificates" -XmlData $xml
+    Check-Log -Component "Certificates" -XmlData $xml
 }

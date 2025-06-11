@@ -7,5 +7,5 @@ function Check-CPU {
 
     $xml = [xml] "<Metrics><Hostname>$($hostName)</Hostname><Timestamp>$($timestamp)</Timestamp><CPU><PercentProcessorTime>$([math]::Round($cpuLoad, 2))</PercentProcessorTime></CPU></Metrics>"
 
-    Write-Log -Component "CPU" -XmlData $xml
+    Check-Log -Component "CPU" -XmlData $xml
 }
