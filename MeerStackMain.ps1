@@ -36,9 +36,7 @@ $debug = 1
 
 . ".\MeerStackConfig.ps1"
 
-. ".\Modules\Cpu.ps1"
-. ".\Modules\Memory.ps1"
-. ".\Modules\Services.ps1"
+. ".\MeerStackModules.ps1"
 
 function Write-Log {
     param (
@@ -50,7 +48,9 @@ function Write-Log {
 
     $line = "$xmlString"
 
-    $logFile = Join-Path $config.LocalLogPath "$Component.log"
+    $dateStamp = Get-Date -Format "yyyyMMddHHmmss"
+
+    $logFile = Join-Path $config.LocalLogPath "$Component-$dateStamp.log"
 
     # Ensure the directory exists
     $logDir = Split-Path -Path $logFile -Parent
@@ -64,3 +64,5 @@ function Write-Log {
 Check-CPU($config)
 Check-Memory($config)
 Check-Services($config)
+Check-Certificates($config)
+Check-Disks($config)

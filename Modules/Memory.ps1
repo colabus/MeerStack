@@ -1,6 +1,7 @@
 function Check-Memory {
     param ($config)
 
+    $hostName = [System.Net.Dns]::GetHostName()
     $timestamp = Get-Date -Format "yyyy-MM-dd HH:mm:ss"
     $os = Get-CimInstance Win32_OperatingSystem
     $used = ($os.TotalVisibleMemorySize - $os.FreePhysicalMemory)
@@ -9,6 +10,7 @@ function Check-Memory {
 
     $xml = [xml] @"
 <Metrics>
+    <Hostname>$($hostName)</Hostname>
     <Timestamp>$($timestamp)</Timestamp>
     <Memory>
         <UsedMB>$([math]::Round($used,2))</UsedMB>
