@@ -60,18 +60,20 @@ while ($true) {
             
             if (Get-Command $functionName -ErrorAction SilentlyContinue) {
                 try {
-                    MeerStack-Log -Status "INFO " -Message "Calling.. $functionName .."
+                    MeerStack-Log -Status "INFO " -Message "[Main] Calling.. $functionName .."
 
                     & $functionName $config
                     $lastRun[$check] = $now
                 } catch {
-                    MeerStack-Log -Status "ERROR" -Message "Error running $($functionName): $_"
+                    MeerStack-Log -Status "ERROR" -Message "[Main] Error running $($functionName): $_"
                 }
             } else {
-                MeerStack-Log -Status "ERROR" -Message "Check function '$functionName' not found."
+                MeerStack-Log -Status "ERROR" -Message "[Main] Check function '$functionName' not found."
             }
         }
     }
+
+    Process-Logs($config)
 
     Start-Sleep -Seconds 5
 }

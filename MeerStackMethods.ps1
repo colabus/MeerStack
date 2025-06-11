@@ -1,3 +1,27 @@
+<#
+    MeerStack Core Methods
+#>
+function MeerStack-Log {
+    param (
+        [string]$Status,
+        [string]$Message
+    )
+
+    $timestamp = Get-Date -Format "yyyy-MM-dd HH:mm:ss"
+    $line = "$timestamp | $Status | $Message"
+
+    $logFile = Join-Path $config.LocalPath "MeerStack.log"
+
+    if (-not (Test-Path -Path $config.LocalPath)) {
+        New-Item -Path $config.LocalPath -ItemType Directory -Force | Out-Null
+    }
+
+    Add-Content -Path $logFile -Value $line
+}
+
+<#
+    MeerStack Checks Methods
+#>
 function Check-Log {
     param (
         [string]$Component,
@@ -23,20 +47,53 @@ function Check-Log {
     Add-Content -Path $logFile -Value $line
 }
 
-function MeerStack-Log {
+<#
+    MeerStack Database Methods
+#>
+function Process-Logs {
     param (
-        [string]$Status,
-        [string]$Message
+        [hashtable]$config
     )
 
-    $timestamp = Get-Date -Format "yyyy-MM-dd HH:mm:ss"
-    $line = "$timestamp | $Status | $Message"
+    $logPath = Join-Path $config.LocalPath "\Logs"
 
-    $logFile = Join-Path $config.LocalPath "MeerStack.log"
-
-    if (-not (Test-Path -Path $config.LocalPath)) {
-        New-Item -Path $config.LocalPath -ItemType Directory -Force | Out-Null
+    if (-not (Test-Path $logPath)) {
+        MeerStack-Log -Status "ERROR" -Message "[Process-Logs] $logPath not found."
+        return
     }
 
-    Add-Content -Path $logFile -Value $line
+    $connString = $config.Database.ConnectionString
+
+    $logFiles = Get-ChildItem -Path $logPath -Filter *.log -File
+
+    foreach ($file in $logFiles) {
+        try {
+            $lines = Get-Content -Path $file.FullName
+            foreach ($line in $lines) {
+                if ([string]::IsNullOrWhiteSpace($line)) { continue }
+
+                MeerStack-Log -Status "INFO " -Message "[Process-Logs] Processing $($file.Name)..."
+
+                <#
+                $sqlConn = New-Object System.Data.SqlClient.SqlConnection $connString
+                $sqlCmd = $sqlConn.CreateCommand()
+                $sqlCmd.CommandText = "usp_Process_Log_Insert"
+                $sqlCmd.CommandType = [System.Data.CommandType]::StoredProcedure
+
+                $param = $sqlCmd.Parameters.Add("@Payload", [System.Data.SqlDbType]::Xml)
+                $param.Value = $line
+
+                $sqlConn.Open()
+                $sqlCmd.ExecuteNonQuery()
+                $sqlConn.Close()
+                #>
+            }
+
+            MeerStack-Log -Status "INFO " -Message "[Process-Logs] Deleting $($file.Name)..."
+            Remove-Item $file.FullName -Force
+        }
+        catch {
+            MeerStack-Log -Status "ERROR" -Message "Error processing $($file.Name): $_"
+        }
+    }
 }

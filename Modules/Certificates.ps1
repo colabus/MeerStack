@@ -1,5 +1,7 @@
 function Check-Certificates {
-    param ($config)
+    param (
+        [hashtable]$config
+    )
 
     $hostName = [System.Net.Dns]::GetHostName()
     $timestamp = Get-Date -Format "yyyy-MM-dd HH:mm:ss"
