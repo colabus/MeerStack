@@ -5,6 +5,8 @@ $config = @{
         ConnectionString = "Server=Nick-PC;Database=MeerStack;Integrated Security=True;"
     }
 
+    Configuration = @{ Interval = 600 }
+
     LocalPath = "C:\MeerStack"
 }
 

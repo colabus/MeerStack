@@ -75,5 +75,14 @@ while ($true) {
 
     Process-Logs($config)
 
+    $now = Get-Date
+    $last = $lastRun['Configuration']
+
+    if (-not $last -or ($now - $last).TotalSeconds -ge $config.Configuration.Interval) {
+        MeerStack-Log -Status "INFO " -Message "[Main] Refreshing config .."
+
+        . ".\MeerStackConfig.ps1"
+    }
+
     Start-Sleep -Seconds 5
 }
