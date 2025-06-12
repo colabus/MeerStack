@@ -45,10 +45,10 @@ try {
             }
         }
 
-        MeerStack-Log -Status "INFO " -Message "[Main] Loaded configuration for $hostname.."
+        MeerStack-Log -Status "INFO " -Message "[Config] Loaded configuration for $hostname.."
     }
     else {
-        MeerStack-Log -Status "ERROR" -Message "[Main] Failed to load configuration for $hostname.."
+        MeerStack-Log -Status "ERROR" -Message "[Config] Failed to load configuration for $hostname.."
 
         Exit 1
     }
@@ -56,7 +56,7 @@ try {
     $sqlConnection.Close()
 }
 catch {
-    MeerStack-Log -Status "ERROR" -Message "[Main] Failed to load configuration: $_"
+    MeerStack-Log -Status "ERROR" -Message "[Config] Failed to load configuration: $_"
 
     exit 1
 }
