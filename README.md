@@ -25,7 +25,7 @@
        `.`.                 --'
          `.`-._        _,             ,-     __,-
             `-.`.
-               `;     MeerStack by colabus & jizz
+               `;     MeerStack by colabus & insig
 
 
 In nature, meerkats live in tightly knit social groups where individuals take
