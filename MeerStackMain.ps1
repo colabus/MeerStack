@@ -25,7 +25,7 @@ ___,-| |----''    / |         `._`-.          `----
        `.`.                 --'
          `.`-._        _,             ,-     __,-
             `-.`.
-   --'         `;     MeerStack by colabus & jizz
+   --'         `;     MeerStack by colabus & insig
 
 #>
 
