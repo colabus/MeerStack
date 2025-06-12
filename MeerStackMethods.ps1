@@ -62,6 +62,7 @@ function Process-Logs {
         return
     }
 
+    $hostName = [System.Net.Dns]::GetHostName()
     $connString = $config.Database.ConnectionString
 
     $logFiles = Get-ChildItem -Path $logPath -Filter *.log -File
@@ -74,19 +75,23 @@ function Process-Logs {
 
                 MeerStack-Log -Status "INFO " -Message "[Process-Logs] Processing $($file.Name)..."
 
-                <#
                 $sqlConn = New-Object System.Data.SqlClient.SqlConnection $connString
                 $sqlCmd = $sqlConn.CreateCommand()
-                $sqlCmd.CommandText = "usp_Process_Log_Insert"
+                $sqlCmd.CommandText = "usp_Check_Log_Insert"
                 $sqlCmd.CommandType = [System.Data.CommandType]::StoredProcedure
 
-                $param = $sqlCmd.Parameters.Add("@Payload", [System.Data.SqlDbType]::Xml)
-                $param.Value = $line
+                $sqlCmd.Parameters.Add("@Hostname", [System.Data.SqlDbType]::NVarChar, 50) | Out-Null
+                $sqlCmd.Parameters["@Hostname"].Value = hostName
+
+                $sqlCmd.Parameters.Add("@Filename", [System.Data.SqlDbType]::NVarChar, 50) | Out-Null
+                $sqlCmd.Parameters["@Filename"].Value = $file.Name
+
+                $sqlCmd.Parameters.Add("@Payload", [System.Data.SqlDbType]::Xml) | Out-Null
+                $sqlCmd.Parameters["@Payload"].Value = $line
 
                 $sqlConn.Open()
-                $sqlCmd.ExecuteNonQuery()
+                $null = $sqlCmd.ExecuteNonQuery()
                 $sqlConn.Close()
-                #>
             }
 
             MeerStack-Log -Status "INFO " -Message "[Process-Logs] Deleting $($file.Name)..."

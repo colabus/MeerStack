@@ -22,13 +22,6 @@ function Check-Services {
     <StartType>$($serviceObj.StartType)</StartType>
 </Service>
 "@
-        } else {
-            $xmlContent += @"
-  <Service>
-    <Name>$svc</Name>
-    <Error>Service not found.</Error>
-  </Service>
-"@
         }
     }
 

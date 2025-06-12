@@ -34,11 +34,11 @@ CD "C:\Users\Nick Claridge\OneDrive\GitHub\MeerStack"
 
 $debug = 1
 
+. ".\MeerStackMethods.ps1"
+
 . ".\MeerStackConfig.ps1"
 
 . ".\MeerStackModules.ps1"
-
-. ".\MeerStackMethods.ps1"
 
 $lastRun = @{}
 
@@ -77,11 +77,3 @@ while ($true) {
 
     Start-Sleep -Seconds 5
 }
-
-<#
-Check-CPU($config)
-Check-Memory($config)
-Check-Services($config)
-Check-Certificates($config)
-Check-Disks($config)
-#>
