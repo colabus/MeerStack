@@ -11,6 +11,16 @@ $lastRun = @{}
 while ($true) {
     $now = Get-Date
 
+    # Heartbeat
+    try {
+        MeerStack-Log -Status "INFO " -Message "[Main] Calling.. Heartbeat .."
+
+        Heartbeat
+    } catch {
+        MeerStack-Log -Status "ERROR" -Message "[Main] Error running Heartbeat: $_"
+    }
+
+    # Checks
     foreach ($check in $config.Checks.Keys) {
         $checkConfig = $config.Checks[$check]
 
@@ -39,9 +49,10 @@ while ($true) {
         }
     }
 
+    # Process Logs
     Process-Logs($config)
 
-    $now = Get-Date
+    # Configuration
     $last = $lastRun['Configuration']
 
     if (-not $last -or ($now - $last).TotalSeconds -ge $config.Configuration.Interval) {
@@ -52,5 +63,5 @@ while ($true) {
         $lastRun['Configuration'] = $now
     }
 
-    Start-Sleep -Seconds 5
+    Start-Sleep -Seconds 60
 }
