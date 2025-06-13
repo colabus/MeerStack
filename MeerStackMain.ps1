@@ -1,38 +1,4 @@
-<#
-                      ,'''''-._
-                     ;  ,.  <> `-._ 
-                     ;  \'   _,--'"
-                    ;      (
-                    ; ,   ` \
-                    ;, ,     \
-                   ;    |    |
-                   ; |, |    |\
-                  ;  |  |    | \
-                  |.-\ ,\    |\ :
-                  |.- `. `-. | ||
-                  :.-   `-. \ ';;
-                   .- ,   \;;|
-                   ;   ,  |  ,\
-                   ; ,    ;    \
-                  ;    , /`.  , )
-               __,;,   ,'   \  ,|
-         _,--''__,|   /      \  :
-       ,'_,-''    | ,/        | :
-      / /         | ;         ; |
-     | |      __,-| |--..__,--| |---.--....___
-___,-| |----''    / |         `._`-.          `----
-      \ \        `"""             """      --
-       `.`.                 --'
-         `.`-._        _,             ,-     __,-
-            `-.`.
-   --'         `;     MeerStack by colabus & insig
-
-#>
-
-
 CD "C:\Users\Nick Claridge\OneDrive\GitHub\MeerStack"
-
-$debug = 1
 
 . ".\MeerStackMethods.ps1"
 
@@ -81,7 +47,9 @@ while ($true) {
     if (-not $last -or ($now - $last).TotalSeconds -ge $config.Configuration.Interval) {
         MeerStack-Log -Status "INFO " -Message "[Main] Refreshing config .."
 
-        . ".\MeerStackConfig.ps1"
+        MeerStack-Configuration
+
+        $lastRun['Configuration'] = $now
     }
 
     Start-Sleep -Seconds 5

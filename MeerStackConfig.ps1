@@ -5,60 +5,73 @@ $config = @{
         ConnectionString = "Server=Nick-PC;Database=MeerStack;Integrated Security=True;"
     }
 
-    Configuration = @{ Interval = 600 }
+    Configuration = @{ Interval = 15 }
 
     LocalPath = "C:\MeerStack"
 }
 
-try {
-    $hostName = [System.Net.Dns]::GetHostName()
+function MeerStack-Configuration {
 
-    $connectionString = $config.Database.ConnectionString
+    try {
+        $config.Checks = @{ }
 
-    $sqlConnection = New-Object System.Data.SqlClient.SqlConnection $connectionString
-    $sqlCommand = $sqlConnection.CreateCommand()
-    $sqlCommand.CommandText = "usp_HostConfiguration_Get"
-    $sqlCommand.CommandType = [System.Data.CommandType]::StoredProcedure
+        $hostName = [System.Net.Dns]::GetHostName()
 
-    $sqlCommand.Parameters.Add("@Hostname", [System.Data.SqlDbType]::VarChar, 50) | Out-Null
-    $sqlCommand.Parameters["@Hostname"].Value = $hostName
+        $connectionString = $config.Database.ConnectionString
 
-    $sqlConnection.Open()
-    $reader = $sqlCommand.ExecuteReader()
+        $sqlConnection = New-Object System.Data.SqlClient.SqlConnection $connectionString
+        $sqlCommand = $sqlConnection.CreateCommand()
+        $sqlCommand.CommandText = "usp_HostConfiguration_Get"
+        $sqlCommand.CommandType = [System.Data.CommandType]::StoredProcedure
 
-    if ($reader.Read()) {
-        $config.Checks["CPU"] = @{
-            Enabled  = ($reader["Cpu"] -eq $true)
-            Interval = [int]$reader["CpuInterval"]
-        }
+        $sqlCommand.Parameters.Add("@Hostname", [System.Data.SqlDbType]::VarChar, 50) | Out-Null
+        $sqlCommand.Parameters["@Hostname"].Value = $hostName
 
-        $config.Checks["Memory"] = @{
-            Enabled  = ($reader["Memory"] -eq $true)
-            Interval = [int]$reader["MemoryInterval"]
-        }
+        $sqlConnection.Open()
+        $reader = $sqlCommand.ExecuteReader()
 
-        $config.Checks["Services"] = @{
-            Enabled         = ($reader["Services"] -eq $true)
-            Interval        = [int]$reader["ServicesInterval"]
-            ServicesToCheck = if ($reader["ServicesToCheck"]) {
-                $reader["ServicesToCheck"] -split '[,;]' | ForEach-Object { $_.Trim() }
-            } else {
-                @()
+        if ($reader.Read()) {
+            $config.Checks["CPU"] = @{
+                Enabled  = ($reader["Cpu"] -eq $true)
+                Interval = [int]$reader["CpuInterval"]
             }
+
+            $config.Checks["Memory"] = @{
+                Enabled  = ($reader["Memory"] -eq $true)
+                Interval = [int]$reader["MemoryInterval"]
+            }
+
+            $config.Checks["Services"] = @{
+                Enabled         = ($reader["Services"] -eq $true)
+                Interval        = [int]$reader["ServicesInterval"]
+                ServicesToCheck = if ($reader["ServicesToCheck"]) {
+                    $reader["ServicesToCheck"] -split '[,;]' | ForEach-Object { $_.Trim() }
+                } else {
+                    @()
+                }
+                Verbose         = ($reader["ServicesVerbose"] -eq $true)
+            }
+
+            $config.Checks["Disks"] = @{
+                Enabled  = ($reader["Disks"] -eq $true)
+                Interval = [int]$reader["DisksInterval"]
+            }
+
+            MeerStack-Log -Status "INFO " -Message "[Config] Loaded configuration for $hostname.."
+        }
+        else {
+            MeerStack-Log -Status "ERROR" -Message "[Config] Failed to load configuration for $hostname.."
+
+            Exit 1
         }
 
-        MeerStack-Log -Status "INFO " -Message "[Config] Loaded configuration for $hostname.."
+        $sqlConnection.Close()
     }
-    else {
-        MeerStack-Log -Status "ERROR" -Message "[Config] Failed to load configuration for $hostname.."
+    catch {
+        MeerStack-Log -Status "ERROR" -Message "[Config] Failed to load configuration: $_"
 
-        Exit 1
+        exit 1
     }
-
-    $sqlConnection.Close()
 }
-catch {
-    MeerStack-Log -Status "ERROR" -Message "[Config] Failed to load configuration: $_"
 
-    exit 1
-}
+MeerStack-Configuration

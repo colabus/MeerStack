@@ -1,6 +1,5 @@
-<#
-    MeerStack Core Methods
-#>
+# MeerStack Core Methods
+
 function MeerStack-Log {
     param (
         [string]$Status,
@@ -19,9 +18,8 @@ function MeerStack-Log {
     Add-Content -Path $logFile -Value $line
 }
 
-<#
-    MeerStack Checks Methods
-#>
+# MeerStack Checks Methods
+
 function Check-Log {
     param (
         [string]$Component,
@@ -47,9 +45,8 @@ function Check-Log {
     Add-Content -Path $logFile -Value $line
 }
 
-<#
-    MeerStack Database Methods
-#>
+# MeerStack Database Methods
+
 function Process-Logs {
     param (
         [hashtable]$config

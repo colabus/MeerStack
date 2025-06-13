@@ -22,7 +22,16 @@ function Check-Services {
     <StartType>$($serviceObj.StartType)</StartType>
 </Service>
 "@
+        } else {
+            if ($config.Checks.Services.Verbose) {
+            $xmlContent += @"
+  <Service>
+    <Name>$svc</Name>
+    <Error>Service not found.</Error>
+  </Service>
+"@
         }
+    }
     }
 
     $xmlContent += "</Services></Metrics>"
