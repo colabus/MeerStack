@@ -14,25 +14,27 @@ function Check-Certificates {
     $xmlContent = "<Metrics><Hostname>$($hostName)</Hostname><Timestamp>$($timestamp)</Timestamp><Certificates>"
 
     foreach ($cert in $certs) {
-        $subject = $cert.Subject
-        $issuer = $cert.Issuer
-        $thumbprint = $cert.Thumbprint
-        $hasPrivateKey = $cert.HasPrivateKey
         $dnsNameList = $cert.DnsNameList
+        $issuer = $cert.Issuer
         $notBefore = $cert.NotBefore
         $notAfter = $cert.NotAfter
-        $daysRemaining = ($notAfter - $now).Days
+        $hasPrivateKey = $cert.HasPrivateKey
+        $serialNumber = $cert.SerialNumber
+        $subject = $cert.Subject
+        $thumbprint = $cert.Thumbprint
+        $version = $cert.Version
 
         $xmlContent += @"
 <Certificate>
-    <Subject>$subject</Subject>
-    <Issuer>$issuer</Issuer>
-    <Thumbprint>$thumbprint</Thumbprint>
-    <HasPrivateKey>$hasPrivateKey</HasPrivateKey>
     <DnsNameList>$dnsNameList</DnsNameList>
+    <Issuer>$issuer</Issuer>
     <NotBefore>$($notBefore.ToString("yyyy-MM-dd HH:mm:ss"))</NotBefore>
     <NotAfter>$($notAfter.ToString("yyyy-MM-dd HH:mm:ss"))</NotAfter>
-    <DaysRemaining>$daysRemaining</DaysRemaining>
+    <HasPrivateKey>$hasPrivateKey</HasPrivateKey>
+    <SerialNumber>$serialNumber</SerialNumber>
+    <Subject>$subject</Subject>
+    <Thumbprint>$thumbprint</Thumbprint>
+    <Version>$version</Version>
 </Certificate>
 "@
     }
