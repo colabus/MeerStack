@@ -1,4 +1,4 @@
-CD "C:\Users\Nick Claridge\OneDrive\GitHub\MeerStack"
+CD $PSScriptRoot
 
 . ".\MeerStackMethods.ps1"
 

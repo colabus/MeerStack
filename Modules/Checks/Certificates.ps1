@@ -43,5 +43,8 @@ function Check-Certificates {
 
     $xml = [xml]$xmlContent
 
-    Check-Log -Component "Certificates" -XmlData $xml
+    if ($certs.Count -ne 0)
+    {
+        Check-Log -Component "Certificates" -XmlData $xml
+    }
 }

@@ -39,5 +39,8 @@ function Check-Services {
     # Convert string to XML object
     $xml = [xml]$xmlContent
 
-    Check-Log -Component "Services" -XmlData $xml
+    if ($xml.Metrics.Services.ChildNodes.Count -ne 0)
+    {
+        Check-Log -Component "Services" -XmlData $xml
+    }
 }

@@ -57,6 +57,11 @@ function MeerStack-Configuration {
                 Interval = [int]$reader["DisksInterval"]
             }
 
+            $config.Checks["Certificates"] = @{
+                Enabled  = ($reader["Certificates"] -eq $true)
+                Interval = [int]$reader["CertificatesInterval"]
+            }
+
             MeerStack-Log -Status "INFO " -Message "[Config] Loaded configuration for $hostname.."
         }
         else {
