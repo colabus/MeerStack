@@ -56,11 +56,15 @@ while ($true) {
     $last = $lastRun['Configuration']
 
     if (-not $last -or ($now - $last).TotalSeconds -ge $config.Configuration.Interval) {
-        MeerStack-Log -Status "INFO " -Message "[Main] Refreshing config .."
+        try {
+            MeerStack-Log -Status "INFO " -Message "[Main] Refreshing config .."
 
-        MeerStack-Configuration
+            MeerStack-Configuration
 
-        $lastRun['Configuration'] = $now
+            $lastRun['Configuration'] = $now
+        } catch {
+            MeerStack-Log -Status "ERROR" -Message "[Main] Error running MeerStack-Configuration: $_"
+        }
     }
 
     Start-Sleep -Seconds 60
