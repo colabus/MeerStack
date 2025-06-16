@@ -59,7 +59,7 @@ function Process-Logs {
         return
     }
 
-    $hostName = [System.Net.Dns]::GetHostName()
+    $hostName = $m_hostName
     $connString = $config.Database.ConnectionString
 
     $logFiles = Get-ChildItem -Path $logPath -Filter *.log -File

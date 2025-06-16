@@ -3,6 +3,7 @@ CD $PSScriptRoot
 $outputScript = ".\MeerStackBootstrap.ps1"
 
 $orderedFiles = @(
+    ".\MeerStackVariables.ps1",
     ".\MeerStackMethods.ps1",
     ".\MeerStackConfig.ps1",
 

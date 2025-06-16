@@ -17,7 +17,7 @@ function MeerStack-Configuration {
     try {
         $config.Checks = @{ }
 
-        $hostName = [System.Net.Dns]::GetHostName()
+        $hostName = $m_hostName
 
         $connectionString = $config.Database.ConnectionString
 

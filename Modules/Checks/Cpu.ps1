@@ -3,7 +3,7 @@ function Check-CPU {
         [hashtable]$config
     )
 
-    $hostName = [System.Net.Dns]::GetHostName()
+    $hostName = $m_hostName
     $timestamp = Get-Date -Format "yyyy-MM-dd HH:mm:ss"
     $cpuLoad = (Get-Counter '\Processor(_Total)\% Processor Time').CounterSamples.CookedValue
 

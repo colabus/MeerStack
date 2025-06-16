@@ -3,7 +3,7 @@ function Check-Memory {
         [hashtable]$config
     )
 
-    $hostName = [System.Net.Dns]::GetHostName()
+    $hostName = $m_hostName
     $timestamp = Get-Date -Format "yyyy-MM-dd HH:mm:ss"
     $os = Get-CimInstance Win32_OperatingSystem
     $used = ($os.TotalVisibleMemorySize - $os.FreePhysicalMemory)

@@ -3,7 +3,7 @@ function Check-Services {
         [hashtable]$config
     )
 
-    $hostName = [System.Net.Dns]::GetHostName()
+    $hostName = $m_hostName
     $timestamp = Get-Date -Format "yyyy-MM-dd HH:mm:ss"
     $services = $config.Checks.Services.ServicesToCheck
 

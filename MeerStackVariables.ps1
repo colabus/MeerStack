@@ -1,0 +1,1 @@
+$m_hostName = [System.Environment]::MachineName

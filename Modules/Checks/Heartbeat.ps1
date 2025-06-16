@@ -1,6 +1,6 @@
 function Heartbeat {
 
-    $hostName = [System.Net.Dns]::GetHostName()
+    $hostName = $m_hostName
     $timestamp = Get-Date -Format "yyyy-MM-dd HH:mm:ss"
 
     $ipAddresses = ([System.Net.Dns]::GetHostAddresses($hostname) |

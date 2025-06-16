@@ -2,6 +2,8 @@ CD $PSScriptRoot
 
 $connectionString = "Server=Nick-PC;Database=MeerStack;Integrated Security=True;"
 
+. ".\MeerStackVariables.ps1"
+
 . ".\MeerStackMethods.ps1"
 
 . ".\MeerStackConfig.ps1"

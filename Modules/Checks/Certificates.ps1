@@ -3,7 +3,7 @@ function Check-Certificates {
         [hashtable]$config
     )
 
-    $hostName = [System.Net.Dns]::GetHostName()
+    $hostName = $m_hostName
     $timestamp = Get-Date -Format "yyyy-MM-dd HH:mm:ss"
     $store = New-Object System.Security.Cryptography.X509Certificates.X509Store "My", "LocalMachine"
     $store.Open("ReadOnly")

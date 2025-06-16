@@ -3,7 +3,7 @@ function Check-Disks {
         [hashtable]$config
     )
 
-    $hostName = [System.Net.Dns]::GetHostName()
+    $hostName = $m_hostName
     $timestamp = Get-Date -Format "yyyy-MM-dd HH:mm:ss"
     $drives = Get-CimInstance -ClassName Win32_LogicalDisk -Filter "DriveType = 3"
 
