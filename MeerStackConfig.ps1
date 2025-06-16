@@ -1,11 +1,13 @@
+$scriptVersion = "20250616.2"
+
 $config = @{
     Checks = @{ }
 
     Database = @{
-        ConnectionString = "Server=Nick-PC;Database=MeerStack;Integrated Security=True;"
+        ConnectionString = $connectionString
     }
 
-    Configuration = @{ Interval = 15 }
+    Configuration = @{ Interval = 60 }
 
     LocalPath = "C:\MeerStack"
 }
@@ -62,7 +64,16 @@ function MeerStack-Configuration {
                 Interval = [int]$reader["CertificatesInterval"]
             }
 
+            $config.ScriptVersion = $reader["ScriptVersion"]
+
             MeerStack-Log -Status "INFO " -Message "[Config] Loaded configuration for $hostname.."
+
+            if ($scriptVersion -ne $config.ScriptVersion)
+            {
+                MeerStack-Log -Status "ERROR" -Message "[Config] Script version mismatches database version.."
+
+                Exit 1
+            }
         }
         else {
             MeerStack-Log -Status "ERROR" -Message "[Config] Failed to load configuration for $hostname.."

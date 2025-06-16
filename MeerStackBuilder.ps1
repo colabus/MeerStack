@@ -7,7 +7,7 @@ $orderedFiles = @(
     ".\MeerStackConfig.ps1",
 
     ".\Modules\Checks\Heartbeat.ps1",
-    
+
     ".\Modules\Checks\Cpu.ps1",
     ".\Modules\Checks\Memory.ps1",
     ".\Modules\Checks\Services.ps1",
@@ -17,7 +17,10 @@ $orderedFiles = @(
     ".\MeerStackMain.ps1"
 )
 
-$header = @"
+$header = @'
+$connectionString = "Server=Nick-PC;Database=MeerStack;Integrated Security=True;"
+$scriptVersion = "20250616.2"
+
 <#
                       ,'''''-._
                      ;  ,.  <> `-._ 
@@ -49,6 +52,10 @@ ___,-| |----''    / |         `._`-.          `----
 
 #>
 
+'@
+
+$header = $header + @"
+
 #  Generated: $(Get-Date -Format 'yyyy-MM-dd HH:mm:ss')
 
 "@
@@ -75,6 +82,8 @@ foreach ($file in $orderedFiles) {
         -replace '\s*#.*$', '' `
         -replace '^\s*$', '' `
         -replace '[ \t]{2,}', ' ' `
+        -replace '^\s*\$connectionString.*', '' `
+        -replace '^\s*\$scriptVersion.*', '' `
         -join "`n"
 
     $minified = $minified -replace '(\n){2,}', "`n"
