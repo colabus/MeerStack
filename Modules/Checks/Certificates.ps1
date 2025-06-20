@@ -14,6 +14,17 @@ function Check-Certificates {
     $xmlContent = "<Metrics><Hostname>$($hostName)</Hostname><Timestamp>$($timestamp)</Timestamp><Certificates>"
 
     foreach ($cert in $certs) {
+
+        $template = $null
+        $certExtensions = $cert.Extensions
+
+        foreach ($certExtension in $certExtensions) {
+                if ($certExtension.Oid.Value -eq "1.3.6.1.4.1.311.21.7") # Certificate Template Information
+                {
+                    $template = $certExtension.Format(0) -replace '^Template=', '' -replace '\(1.3.6.1.4.1.*', ''
+                }
+        }
+
         $dnsNameList = $cert.DnsNameList
         $issuer = $cert.Issuer
         $notBefore = $cert.NotBefore
@@ -34,6 +45,7 @@ function Check-Certificates {
     <SerialNumber>$serialNumber</SerialNumber>
     <Subject>$subject</Subject>
     <Thumbprint>$thumbprint</Thumbprint>
+    $(if ($template -eq $null) { '' } else { "<Template>$template</Template>" })
     <Version>$version</Version>
 </Certificate>
 "@
