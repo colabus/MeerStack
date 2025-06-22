@@ -4,6 +4,7 @@ function Check-EventLogs {
     )
 
     $hostname = $env:COMPUTERNAME
+    $timestamp = Get-Date -Format "yyyy-MM-dd HH:mm:ss"
 
     $filterXml = $config.Checks.EventLogs.filterXml
     $lastTimeCreated = $config.Checks.EventLogs.lastTimeCreated
