@@ -9,6 +9,24 @@ function Check-EventLogs {
     $filterXml = $config.Checks.EventLogs.filterXml
     $lastTimeCreated = $config.Checks.EventLogs.lastTimeCreated
 
+    $time = (Get-Date).AddDays(-1).ToString("yyyy-MM-ddTHH:mm:ss.fffZ")
+
+    $filterXml = @"
+    <QueryList>
+    <Query Id="0" Path="Application">
+        <Select Path="Application">
+        *[System[TimeCreated[@SystemTime &gt; '$time'] ]]
+        </Select>
+        <Suppress Path="Application">*[System[((Provider[@Name = 'Windows Error Reporting'] and EventID = 1001) or (Provider[@Name = 'SecurityCenter'] and EventID = 15) or (Provider[@Name = 'Microsoft-Windows-RestartManager'] and EventID = 10001))]]</Suppress>
+    </Query>
+    <Query Id="1" Path="Security">
+        <Select Path="Security">
+        *[System[TimeCreated[@SystemTime &gt; '$time'] and EventID = 1102 and EventRecordID = 112284]]
+        </Select>
+    </Query>
+    </QueryList>
+    "@
+
     if (-not $filterXml) {
         MeerStack-Log -Component "EventLogs" -Message "No config returned from database."
         return
