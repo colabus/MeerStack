@@ -64,6 +64,13 @@ function MeerStack-Configuration {
                 Interval = [int]$reader["CertificatesInterval"]
             }
 
+            $config.Checks["EventLogs"] = @{
+                Enabled  = ($reader["EventLogs"] -eq $true)
+                Interval = [int]$reader["EventLogsInterval"]
+                XmlFilter = [string]$reader["EventLogsXmlFilter"]
+                LastUpdated = [DateTime]$reader["EventLogsLastUpdated"]
+            }
+
             $config.ScriptVersion = $reader["ScriptVersion"]
 
             MeerStack-Log -Status "INFO " -Message "[Config] Loaded configuration for $hostname.."

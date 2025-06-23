@@ -7,3 +7,5 @@
 . ".\Modules\Checks\Services.ps1"
 . ".\Modules\Checks\Certificates.ps1"
 . ".\Modules\Checks\Disks.ps1"
+
+. ".\Modules\Checks\EventLogs.ps1"

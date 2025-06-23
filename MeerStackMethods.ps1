@@ -61,41 +61,53 @@ function Process-Logs {
 
     $hostName = $m_hostName
     $connString = $config.Database.ConnectionString
-
     $logFiles = Get-ChildItem -Path $logPath -Filter *.log -File
 
     foreach ($file in $logFiles) {
         try {
-            $lines = Get-Content -Path $file.FullName
-            foreach ($line in $lines) {
-                if ([string]::IsNullOrWhiteSpace($line)) { continue }
+            MeerStack-Log -Status "INFO" -Message "[Process-Logs] Processing $($file.Name)..."
 
-                MeerStack-Log -Status "INFO " -Message "[Process-Logs] Processing $($file.Name)..."
+            $payloads = @()
 
-                $sqlConn = New-Object System.Data.SqlClient.SqlConnection $connString
-                $sqlCmd = $sqlConn.CreateCommand()
-                $sqlCmd.CommandText = "usp_Check_Log_Insert"
-                $sqlCmd.CommandType = [System.Data.CommandType]::StoredProcedure
-
-                $sqlCmd.Parameters.Add("@Hostname", [System.Data.SqlDbType]::NVarChar, 50) | Out-Null
-                $sqlCmd.Parameters["@Hostname"].Value = hostName
-
-                $sqlCmd.Parameters.Add("@Filename", [System.Data.SqlDbType]::NVarChar, 50) | Out-Null
-                $sqlCmd.Parameters["@Filename"].Value = $file.Name
-
-                $sqlCmd.Parameters.Add("@Payload", [System.Data.SqlDbType]::Xml) | Out-Null
-                $sqlCmd.Parameters["@Payload"].Value = $line
-
-                $sqlConn.Open()
-                $null = $sqlCmd.ExecuteNonQuery()
-                $sqlConn.Close()
+            if ($file.Name -match '^EventLogs') {
+                # XML Payload
+                $payloads += Get-Content -Path $file.FullName -Raw
+            }
+            else {
+                # XML Payload per Line
+                $payloads += Get-Content -Path $file.FullName | Where-Object { -not [string]::IsNullOrWhiteSpace($_) }
             }
 
-            MeerStack-Log -Status "INFO " -Message "[Process-Logs] Deleting $($file.Name)..."
+            foreach ($payload in $payloads) {
+
+                $sqlConn = New-Object System.Data.SqlClient.SqlConnection $connString
+
+                try {
+                    $sqlConn.Open()
+                    $sqlCmd = $sqlConn.CreateCommand()
+                    $sqlCmd.CommandText = "usp_Check_Log_Insert"
+                    $sqlCmd.CommandType = [System.Data.CommandType]::StoredProcedure
+
+                    $sqlCmd.Parameters.Add("@Hostname", [System.Data.SqlDbType]::NVarChar, 50).Value = $hostName
+                    $sqlCmd.Parameters.Add("@Filename", [System.Data.SqlDbType]::NVarChar, 50).Value = $file.Name
+                    $sqlCmd.Parameters.Add("@Payload", [System.Data.SqlDbType]::Xml).Value = $payload
+
+                    $null = $sqlCmd.ExecuteNonQuery()
+                }
+                catch {
+                    MeerStack-Log -Status "ERROR" -Message "[Process-Logs] Failed payload insert in $($file.Name): $_"
+                }
+                finally {
+                    if ($sqlConn.State -eq 'Open') { $sqlConn.Close() }
+                    $sqlConn.Dispose()
+                }
+            }
+
+            MeerStack-Log -Status "INFO" -Message "[Process-Logs] Deleting $($file.Name)..."
             Remove-Item $file.FullName -Force
         }
         catch {
-            MeerStack-Log -Status "ERROR" -Message "Error processing $($file.Name): $_"
+            MeerStack-Log -Status "ERROR" -Message "[Process-Logs] Error processing $($file.Name): $_"
         }
     }
 }
