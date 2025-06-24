@@ -7,7 +7,7 @@ function MeerStack-Log {
     )
 
     $timestamp = Get-Date -Format "yyyy-MM-dd HH:mm:ss"
-    $line = "$timestamp | $Status | $Message"
+    $line = "$timestamp | $($Status.PadRight(5).Substring(0, 5)) | $Message"
 
     $logFile = Join-Path $config.LocalPath "MeerStack.log"
 

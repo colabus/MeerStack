@@ -28,11 +28,11 @@ function Check-EventLogs {
 <Event>
   <LogName>$($event.LogName)</LogName>
   <LevelDisplayName>$($event.LevelDisplayName)</LevelDisplayName>
-  <TimeCreated>$($event.TimeCreated)</TimeCreated>
+  <TimeCreated>$($event.TimeCreated.ToString("yyyy-MM-dd HH:mm:ss.fff"))</TimeCreated>
   <ProviderName>$($event.ProviderName)</ProviderName>
   <TaskDisplayName>$($event.TaskDisplayName)</TaskDisplayName>
   <Message><![CDATA[$($event.Message)]]></Message>
-  <ID>$($event_.ID)</ID>
+  <ID>$($event.Id)</ID>
   <RecordID>$($event.RecordID)</RecordID>
 </Event>
 "@
