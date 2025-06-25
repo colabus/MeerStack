@@ -12,6 +12,27 @@ $connectionString = "Server=Nick-PC;Database=MeerStack;Integrated Security=True;
 
 $lastRun = @{}
 
+$logFile = Join-Path $config.LocalPath "MeerStack.log"
+$zipFile = Join-Path $config.LocalPath "MeerStack.zip"
+
+if (Test-Path $logFile) {
+    try {
+        if (Test-Path $zipFile) {
+            MeerStack-Log -Status "INFO" -Message "[Main] Deleting old compressed log file .."
+            Remove-Item $zipFile -Force
+        }
+        MeerStack-Log -Status "INFO" -Message "[Main] Rotating log file (compress/delete) .."
+
+        Compress-Archive -Path $logFile -DestinationPath $zipFile -Force
+        Remove-Item $logFile -Force
+    }
+    catch {
+        MeerStack-Log -Status "ERROR" -Message "[Main] Failed to compress/delete $($logFile): $_"
+    }
+}
+
+MeerStack-Log -Status "INFO " -Message "[Main] MeerStack Starting - Chirrup! .."
+
 while ($true) {
     $now = Get-Date
 
@@ -71,5 +92,7 @@ while ($true) {
         }
     }
 
+    MeerStack-Log -Status "INFO " -Message "[Main] MeerStack is snoozing - Zzz .."
+    
     Start-Sleep -Seconds 60
 }

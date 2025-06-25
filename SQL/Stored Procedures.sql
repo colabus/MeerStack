@@ -42,7 +42,7 @@ BEGIN
     WHERE
         Processed = 0
     ORDER BY
-        ID
+        Timestamp
 
     OPEN curCheckLog
 
@@ -361,6 +361,7 @@ BEGIN
             @SerialNumber varchar(50),
             @Subject varchar(MAX),
             @Thumbprint varchar(50),
+			@Template varchar(50),
             @Version float
 
     SET @Hostname = @Payload.value('(/Metrics/Hostname)[1]', 'varchar(50)');
@@ -378,6 +379,7 @@ BEGIN
             Certificate.value('SerialNumber[1]', 'varchar(50)') AS SerialNumber,
             Certificate.value('Subject[1]', 'varchar(MAX)') AS Subject,
             Certificate.value('Thumbprint[1]', 'varchar(50)') AS Thumbprint,
+			Certificate.value('Template[1]', 'varchar(50)') AS Template,
             Certificate.value('Version[1]', 'float') AS Version
         FROM
             @Payload.nodes('(/Metrics/Certificates/Certificate)') AS T(Certificate)
@@ -393,6 +395,7 @@ BEGIN
             @SerialNumber,
             @Subject,
             @Thumbprint,
+			@Template,
             @Version
 
         WHILE @@FETCH_STATUS = 0
@@ -413,6 +416,7 @@ BEGIN
                             SerialNumber,
                             Subject,
                             Thumbprint,
+							Template,
                             Version
                         FROM
                             dbo.TrendCertificates
@@ -442,6 +446,8 @@ BEGIN
                         AND
                     Thumbprint = @Thumbprint
                         AND
+                    ISNULL(Template, '') = ISNULL(@Template, '')
+                        AND
                     Version = @Version
             )
             BEGIN
@@ -457,6 +463,7 @@ BEGIN
                         SerialNumber,
                         Subject,
                         Thumbprint,
+						Template,
                         Version
                     )
                 VALUES
@@ -471,6 +478,7 @@ BEGIN
                         @SerialNumber,
                         @Subject,
                         @Thumbprint,
+						@Template,
                         @Version
                     )
             END
@@ -484,12 +492,32 @@ BEGIN
                 @SerialNumber,
                 @Subject,
                 @Thumbprint,
+				@Template,
                 @Version
         END
 
         CLOSE curCertificates
         DEALLOCATE curCertificates
+
+		-- Mark old certificates as deleted
+		UPDATE
+			dbo.TrendCertificates
+		SET
+			Deleted = 1
+		WHERE
+			Hostname = @Hostname
+				AND
+			Thumbprint NOT IN (
+				SELECT
+					Certificate.value('Thumbprint[1]', 'varchar(50)') AS Thumbprint
+				FROM
+					@Payload.nodes('(/Metrics/Certificates/Certificate)') AS T(Certificate)
+			)
+
 END
+
+
+GO
 
 CREATE PROCEDURE [dbo].[usp_Trend_Disks_Insert]
 

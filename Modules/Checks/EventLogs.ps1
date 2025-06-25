@@ -10,7 +10,7 @@ function Check-EventLogs {
     $lastTimeCreated = ($config.Checks.EventLogs.LastUpdated.ToUniversalTime()).ToString("yyyy-MM-ddTHH:mm:ss.fffZ")
 
     if (-not $filterXml) {
-        MeerStack-Log -Component "EventLogs" -Message "No config returned from database."
+        MeerStack-Log -Status "INFO" -Message "[Check-EventLogs] No config returned from database."
         return
     }
 
@@ -19,7 +19,11 @@ function Check-EventLogs {
     # Build an XML document
     $xmlContent = "<EventLogs><Hostname>$($hostName)</Hostname><Timestamp>$($timestamp)</Timestamp><EventLog>`n"
 
-    $events = Get-WinEvent -FilterXml $filterXml
+    $events = Get-WinEvent -FilterXml $filterXml -ErrorAction SilentlyContinue
+
+    if (-not $events) {
+        MeerStack-Log -Status "INFO" -Message "[Check-EventLogs] No matching events found."
+    }
 
     foreach ($event in $events)
     {
@@ -28,7 +32,7 @@ function Check-EventLogs {
 <Event>
   <LogName>$($event.LogName)</LogName>
   <LevelDisplayName>$($event.LevelDisplayName)</LevelDisplayName>
-  <TimeCreated>$($event.TimeCreated.ToString("yyyy-MM-dd HH:mm:ss.fff"))</TimeCreated>
+  <TimeCreated>$($event.TimeCreated.ToString("yyyy-MM-dd HH:mm:ss.fffffff"))</TimeCreated>
   <ProviderName>$($event.ProviderName)</ProviderName>
   <TaskDisplayName>$($event.TaskDisplayName)</TaskDisplayName>
   <Message><![CDATA[$($event.Message)]]></Message>

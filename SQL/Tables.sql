@@ -72,6 +72,18 @@ CREATE TABLE [dbo].[MetricsMemory](
 ) ON [PRIMARY]
 GO
 
+CREATE TABLE [dbo].[Systems](
+	[Hostname] [varchar](50) NOT NULL,
+	[Description] [varchar](max) NULL,
+	[Environment] [varchar](50) NULL,
+	[Details] [varchar](max) NULL,
+ CONSTRAINT [PK_Systems] PRIMARY KEY CLUSTERED 
+(
+	[Hostname] ASC
+)WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON, OPTIMIZE_FOR_SEQUENTIAL_KEY = OFF) ON [PRIMARY]
+) ON [PRIMARY] TEXTIMAGE_ON [PRIMARY]
+GO
+
 CREATE TABLE [dbo].[TrendCertificates](
 	[Hostname] [varchar](50) NOT NULL,
 	[Timestamp] [datetime] NOT NULL,
