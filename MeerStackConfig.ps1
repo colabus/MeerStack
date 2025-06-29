@@ -76,6 +76,11 @@ function MeerStack-Configuration {
                 Interval = [int]$reader["SessionsInterval"]
             }
 
+            $config.Checks["Processes"] = @{
+                Enabled  = ($reader["Processes"] -eq $true)
+                Interval = [int]$reader["ProcessesInterval"]
+            }
+
             $config.ScriptVersion = $reader["ScriptVersion"]
 
             MeerStack-Log -Status "INFO " -Message "[Config] Loaded configuration for $hostname.."

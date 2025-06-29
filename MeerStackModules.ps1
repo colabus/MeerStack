@@ -11,3 +11,4 @@
 . ".\Modules\Checks\EventLogs.ps1"
 
 . ".\Modules\Checks\Sessions.ps1"
+. ".\Modules\Checks\Processes.ps1"
