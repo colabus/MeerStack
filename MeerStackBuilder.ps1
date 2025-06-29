@@ -17,6 +17,8 @@ $orderedFiles = @(
 
     ".\Modules\Checks\EventLogs.ps1",
 
+    ".\Modules\Checks\Sessions.ps1",
+
     ".\MeerStackMain.ps1"
 )
 

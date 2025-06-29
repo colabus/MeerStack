@@ -9,3 +9,5 @@
 . ".\Modules\Checks\Disks.ps1"
 
 . ".\Modules\Checks\EventLogs.ps1"
+
+. ".\Modules\Checks\Sessions.ps1"

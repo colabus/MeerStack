@@ -71,6 +71,11 @@ function MeerStack-Configuration {
                 LastUpdated = [DateTime]$reader["EventLogsLastUpdated"]
             }
 
+            $config.Checks["Sessions"] = @{
+                Enabled  = ($reader["Sessions"] -eq $true)
+                Interval = [int]$reader["SessionsInterval"]
+            }
+
             $config.ScriptVersion = $reader["ScriptVersion"]
 
             MeerStack-Log -Status "INFO " -Message "[Config] Loaded configuration for $hostname.."
