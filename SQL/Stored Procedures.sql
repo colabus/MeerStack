@@ -394,6 +394,11 @@ BEGIN
 
 	SELECT TOP 1
 		Hostname,
+
+		-- Heartbeat
+		HeartbeatInterval,
+
+		-- Checks
 		Cpu,
 		CpuInterval,
 		Memory,
@@ -413,6 +418,7 @@ BEGIN
 		Sessions,
 		SessionsInterval,
 
+		-- Version
 		@ScriptVersion AS ScriptVersion
 	FROM
 		dbo.HostConfiguration
