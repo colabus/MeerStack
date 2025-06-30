@@ -1,6 +1,12 @@
 USE [MeerStack]
 GO
 
+SET ANSI_NULLS ON
+GO
+
+SET QUOTED_IDENTIFIER ON
+GO
+
 CREATE TABLE [dbo].[CheckLog](
 	[Id] [bigint] IDENTITY(1,1) NOT NULL,
 	[Timestamp] [datetime] NOT NULL,
@@ -9,6 +15,39 @@ CREATE TABLE [dbo].[CheckLog](
 	[Payload] [xml] NOT NULL,
 	[Processed] [bit] NOT NULL
 ) ON [PRIMARY] TEXTIMAGE_ON [PRIMARY]
+GO
+
+SET ANSI_NULLS ON
+GO
+
+SET QUOTED_IDENTIFIER ON
+GO
+
+CREATE TABLE [dbo].[EventLogs](
+	[Hostname] [varchar](50) NOT NULL,
+	[Timestamp] [datetime] NULL,
+	[LogName] [varchar](100) NOT NULL,
+	[LevelDisplayName] [varchar](50) NULL,
+	[TimeCreated] [datetime] NOT NULL,
+	[ProviderName] [varchar](max) NULL,
+	[TaskDisplayName] [varchar](50) NULL,
+	[Message] [varchar](max) NULL,
+	[ID] [int] NULL,
+	[RecordID] [bigint] NOT NULL,
+ CONSTRAINT [PK_EventLogs] PRIMARY KEY CLUSTERED 
+(
+	[Hostname] ASC,
+	[LogName] ASC,
+	[TimeCreated] ASC,
+	[RecordID] ASC
+)WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON, OPTIMIZE_FOR_SEQUENTIAL_KEY = OFF) ON [PRIMARY]
+) ON [PRIMARY] TEXTIMAGE_ON [PRIMARY]
+GO
+
+SET ANSI_NULLS ON
+GO
+
+SET QUOTED_IDENTIFIER ON
 GO
 
 CREATE TABLE [dbo].[Heartbeats](
@@ -30,6 +69,12 @@ CREATE TABLE [dbo].[Heartbeats](
 ) ON [PRIMARY] TEXTIMAGE_ON [PRIMARY]
 GO
 
+SET ANSI_NULLS ON
+GO
+
+SET QUOTED_IDENTIFIER ON
+GO
+
 CREATE TABLE [dbo].[HostConfiguration](
 	[Id] [bigint] IDENTITY(1,1) NOT NULL,
 	[Hostname] [varchar](50) NOT NULL,
@@ -47,8 +92,19 @@ CREATE TABLE [dbo].[HostConfiguration](
 	[CertificatesInterval] [int] NULL,
 	[EventLogs] [bit] NULL,
 	[EventLogsInterval] [int] NULL,
-	[EventLogsXmlFilter] [varchar](max) NULL
+	[EventLogsXmlFilter] [varchar](max) NULL,
+	[Sessions] [bit] NULL,
+	[SessionsInterval] [int] NULL,
+	[Processes] [bit] NULL,
+	[ProcessesInterval] [int] NULL,
+	[HeartbeatInterval] [int] NULL
 ) ON [PRIMARY] TEXTIMAGE_ON [PRIMARY]
+GO
+
+SET ANSI_NULLS ON
+GO
+
+SET QUOTED_IDENTIFIER ON
 GO
 
 CREATE TABLE [dbo].[MetricsCPU](
@@ -63,6 +119,12 @@ CREATE TABLE [dbo].[MetricsCPU](
 ) ON [PRIMARY]
 GO
 
+SET ANSI_NULLS ON
+GO
+
+SET QUOTED_IDENTIFIER ON
+GO
+
 CREATE TABLE [dbo].[MetricsMemory](
 	[Hostname] [varchar](50) NULL,
 	[Timestamp] [datetime] NULL,
@@ -70,6 +132,12 @@ CREATE TABLE [dbo].[MetricsMemory](
 	[TotalMB] [int] NULL,
 	[UsedPercent] [float] NULL
 ) ON [PRIMARY]
+GO
+
+SET ANSI_NULLS ON
+GO
+
+SET QUOTED_IDENTIFIER ON
 GO
 
 CREATE TABLE [dbo].[Systems](
@@ -84,6 +152,12 @@ CREATE TABLE [dbo].[Systems](
 ) ON [PRIMARY] TEXTIMAGE_ON [PRIMARY]
 GO
 
+SET ANSI_NULLS ON
+GO
+
+SET QUOTED_IDENTIFIER ON
+GO
+
 CREATE TABLE [dbo].[TrendCertificates](
 	[Hostname] [varchar](50) NOT NULL,
 	[Timestamp] [datetime] NOT NULL,
@@ -95,7 +169,9 @@ CREATE TABLE [dbo].[TrendCertificates](
 	[SerialNumber] [varchar](50) NOT NULL,
 	[Subject] [varchar](max) NOT NULL,
 	[Thumbprint] [varchar](50) NOT NULL,
+	[Template] [varchar](50) NULL,
 	[Version] [float] NOT NULL,
+	[Deleted] [bit] NULL,
  CONSTRAINT [PK_TrendCertificates] PRIMARY KEY CLUSTERED 
 (
 	[Hostname] ASC,
@@ -103,6 +179,12 @@ CREATE TABLE [dbo].[TrendCertificates](
 	[Thumbprint] ASC
 )WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON, OPTIMIZE_FOR_SEQUENTIAL_KEY = OFF) ON [PRIMARY]
 ) ON [PRIMARY] TEXTIMAGE_ON [PRIMARY]
+GO
+
+SET ANSI_NULLS ON
+GO
+
+SET QUOTED_IDENTIFIER ON
 GO
 
 CREATE TABLE [dbo].[TrendDisks](
@@ -123,6 +205,12 @@ CREATE TABLE [dbo].[TrendDisks](
 ) ON [PRIMARY]
 GO
 
+SET ANSI_NULLS ON
+GO
+
+SET QUOTED_IDENTIFIER ON
+GO
+
 CREATE TABLE [dbo].[TrendServices](
 	[Hostname] [varchar](50) NOT NULL,
 	[Timestamp] [datetime] NOT NULL,
@@ -139,11 +227,27 @@ CREATE TABLE [dbo].[TrendServices](
 ) ON [PRIMARY]
 GO
 
-CREATE TABLE [dbo].[Version](
-	[ScriptVersion] [varchar](50) NOT NULL,
- CONSTRAINT [PK_Version] PRIMARY KEY CLUSTERED 
+SET ANSI_NULLS ON
+GO
+
+SET QUOTED_IDENTIFIER ON
+GO
+
+CREATE TABLE [dbo].[TrendSessions](
+	[Hostname] [varchar](50) NOT NULL,
+	[Timestamp] [datetime] NOT NULL,
+	[ID] [int] NOT NULL,
+	[SessionName] [varchar](50) NULL,
+	[LogonTime] [datetime] NULL,
+	[IdleTime] [int] NULL,
+	[UserName] [varchar](50) NULL,
+	[State] [varchar](50) NULL,
+	[Deleted] [bit] NULL,
+ CONSTRAINT [PK_TrendSessions] PRIMARY KEY CLUSTERED 
 (
-	[ScriptVersion] ASC
+	[Hostname] ASC,
+	[Timestamp] ASC,
+	[ID] ASC
 )WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON, OPTIMIZE_FOR_SEQUENTIAL_KEY = OFF) ON [PRIMARY]
 ) ON [PRIMARY]
 GO
@@ -153,3 +257,5 @@ GO
 
 ALTER TABLE [dbo].[CheckLog] ADD  CONSTRAINT [DF_CheckLog_Processed]  DEFAULT ((0)) FOR [Processed]
 GO
+
+

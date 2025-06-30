@@ -1,6 +1,12 @@
 USE [MeerStack]
 GO
 
+SET ANSI_NULLS ON
+GO
+
+SET QUOTED_IDENTIFIER ON
+GO
+
 CREATE PROCEDURE [dbo].[usp_Check_Log_Insert]
 
 	@Hostname varchar(50),
@@ -14,6 +20,14 @@ BEGIN
 			VALUES
 		(@Hostname, @Filename, @PayLoad)
 END
+GO
+
+SET ANSI_NULLS ON
+GO
+
+SET QUOTED_IDENTIFIER ON
+GO
+
 
 CREATE PROCEDURE [dbo].[usp_Check_Log_Process]
 
@@ -28,6 +42,32 @@ BEGIN
             @Payload xml,
 
             @Check varchar(50)
+
+	-- Skip outdated Heartbeats to speed backlog processing ..
+
+	UPDATE
+		[MeerStack].[dbo].[CheckLog]
+	SET
+		Processed = 1
+	WHERE
+		Id IN (
+			SELECT
+				Id
+			FROM
+				(
+					SELECT
+						Id,
+						ROW_NUMBER() OVER (PARTITION BY Hostname ORDER BY Filename DESC) AS MessageOrder
+					FROM
+						[MeerStack].[dbo].[CheckLog]
+					WHERE
+						Processed = 0
+							AND
+						Filename LIKE 'Heartbeat%'
+				) CL
+			WHERE
+				MessageOrder <> 1
+		)
 
     DECLARE curCheckLog CURSOR FORWARD_ONLY STATIC FOR
 
@@ -103,10 +143,23 @@ BEGIN
 
             UPDATE [MeerStack].[dbo].[CheckLog] SET Processed = 1 WHERE Id = @Id
         END
+        ELSE IF @Check = 'EventLogs'
+        BEGIN
+            EXEC dbo.usp_EventLogs_Upsert @PayLoad
+
+            UPDATE [MeerStack].[dbo].[CheckLog] SET Processed = 1 WHERE Id = @Id
+        END
+		ELSE IF @Check = 'Sessions'
+        BEGIN
+            EXEC dbo.usp_Trend_Sessions_Insert @PayLoad
+
+            UPDATE [MeerStack].[dbo].[CheckLog] SET Processed = 1 WHERE Id = @Id
+        END
 
         END TRY
         BEGIN CATCH
             SELECT
+				@Id AS ID,
                 ERROR_NUMBER() AS ErrorNumber,
                 ERROR_SEVERITY() AS ErrorSeverity,
                 ERROR_STATE() AS ErrorState,
@@ -128,6 +181,117 @@ BEGIN
 
     SET NOCOUNT OFF
 END
+GO
+
+SET ANSI_NULLS ON
+GO
+
+SET QUOTED_IDENTIFIER ON
+GO
+
+CREATE PROCEDURE [dbo].[usp_EventLogs_Upsert]
+
+	@PayLoad xml
+
+AS
+BEGIN
+    SET NOCOUNT OFF
+
+    DECLARE @Hostname varchar(50),
+            @TimeCreated datetime
+
+    INSERT INTO dbo.EventLogs
+    (
+        Hostname,
+        Timestamp,
+        LogName,
+        LevelDisplayName,
+        TimeCreated,
+        ProviderName,
+        TaskDisplayName,
+        [Message],
+        ID,
+        RecordID
+    )
+    SELECT
+        Event.value('../../Hostname[1]', 'varchar(50)') AS Hostname,
+        Event.value('../../Timestamp[1]', 'datetime') AS Timestamp,
+        Event.value('LogName[1]', 'varchar(100)') AS LogName,
+        Event.value('LevelDisplayName[1]', 'varchar(50)') AS LevelDisplayName,
+        Event.value('TimeCreated[1]', 'datetime') AS TimeCreated,
+        Event.value('ProviderName[1]', 'varchar(MAX)') AS ProviderName,
+        Event.value('TaskDisplayName[1]', 'varchar(50)') AS TaskDisplayName,
+        Event.value('Message[1]', 'varchar(MAX)') AS Message,
+        Event.value('ID[1]', 'int') AS ID,
+        Event.value('RecordID[1]', 'int') AS RecordID
+    FROM
+        @PayLoad.nodes('(/EventLogs/EventLog/Event)') AS E(Event)
+    WHERE
+        NOT EXISTS (
+            SELECT
+                1
+            FROM
+                dbo.EventLogs AS EL
+            WHERE
+                EL.Hostname = Event.value('../../Hostname[1]', 'varchar(50)')
+                    AND
+                EL.LogName = Event.value('LogName[1]', 'varchar(100)')
+                    AND
+                EL.TimeCreated = Event.value('TimeCreated[1]', 'datetime')
+                    AND
+                EL.RecordID = Event.value('RecordID[1]', 'int')
+        )
+
+    SET NOCOUNT ON
+
+    DECLARE curEventLogs CURSOR FORWARD_ONLY STATIC FOR
+
+    SELECT
+        Hostname,
+        MAX(TimeCreated) AS TimeCreated
+    FROM
+        (
+            SELECT
+                Event.value('../../Hostname[1]', 'varchar(50)') AS Hostname,
+                Event.value('TimeCreated[1]', 'datetime') AS TimeCreated
+            FROM
+                @PayLoad.nodes('(/EventLogs/EventLog/Event)') AS E(Event)
+        ) E
+    GROUP BY
+        Hostname
+
+    OPEN curEventLogs
+
+    FETCH NEXT FROM curEventLogs INTO
+        @Hostname,
+        @TimeCreated
+
+    WHILE @@FETCH_STATUS = 0
+    BEGIN
+        UPDATE
+            dbo.Heartbeats
+        SET
+            EventLogsLastUpdated = IIF(@TimeCreated > ISNULL(EventLogsLastUpdated, 0), @TimeCreated, EventLogsLastUpdated)
+        WHERE
+            Hostname = @Hostname
+
+        FETCH NEXT FROM curEventLogs INTO
+            @Hostname,
+            @TimeCreated
+    END
+
+    CLOSE curEventLogs
+    DEALLOCATE curEventLogs
+
+    SET NOCOUNT OFF
+END
+GO
+
+SET ANSI_NULLS ON
+GO
+
+SET QUOTED_IDENTIFIER ON
+GO
 
 CREATE PROCEDURE [dbo].[usp_Heartbeat_Upsert]
 
@@ -205,7 +369,17 @@ BEGIN
     END
 END
 
-CREATE PROCEDURE [dbo].[usp_HostConfiguration_Get] -- [dbo].[usp_HostConfiguration_Get] 'Nick-PC'
+
+
+GO
+
+SET ANSI_NULLS ON
+GO
+
+SET QUOTED_IDENTIFIER ON
+GO
+
+CREATE PROCEDURE [dbo].[usp_HostConfiguration_Get]
 
 	@Hostname varchar(50)
 
@@ -216,7 +390,7 @@ BEGIN
 
 	SELECT @ScriptVersion = ScriptVersion FROM dbo.Version
 
-	SELECT @EventLogsLastUpdated = ISNULL(EventLogsLastUpdated, DATEADD(hour, -12, getdate())) FROM dbo.Heartbeats WHERE Hostname = @Hostname
+	SELECT @EventLogsLastUpdated = ISNULL(EventLogsLastUpdated, DATEADD(hour, -1, getdate())) FROM dbo.Heartbeats WHERE Hostname = @Hostname
 
 	SELECT TOP 1
 		Hostname,
@@ -236,6 +410,8 @@ BEGIN
 		EventLogsInterval,
 		EventLogsXmlFilter,
 		@EventLogsLastUpdated AS EventLogsLastUpdated,
+		Sessions,
+		SessionsInterval,
 
 		@ScriptVersion AS ScriptVersion
 	FROM
@@ -248,6 +424,13 @@ BEGIN
 			ELSE 0
 		END DESC
 END
+GO
+
+SET ANSI_NULLS ON
+GO
+
+SET QUOTED_IDENTIFIER ON
+GO
 
 CREATE PROCEDURE [dbo].[usp_Metrics_CPU_Upsert]
 
@@ -290,6 +473,16 @@ BEGIN
                 )
         END
 END
+
+
+GO
+
+SET ANSI_NULLS ON
+GO
+
+SET QUOTED_IDENTIFIER ON
+GO
+
 
 CREATE PROCEDURE [dbo].[usp_Metrics_Memory_Upsert]
 
@@ -342,6 +535,13 @@ BEGIN
                 )
         END
 END
+GO
+
+SET ANSI_NULLS ON
+GO
+
+SET QUOTED_IDENTIFIER ON
+GO
 
 CREATE PROCEDURE [dbo].[usp_Trend_Certificates_Insert]
 
@@ -519,6 +719,12 @@ END
 
 GO
 
+SET ANSI_NULLS ON
+GO
+
+SET QUOTED_IDENTIFIER ON
+GO
+
 CREATE PROCEDURE [dbo].[usp_Trend_Disks_Insert]
 
 	@PayLoad xml
@@ -636,6 +842,15 @@ BEGIN
         DEALLOCATE curDisks
 END
 
+
+GO
+
+SET ANSI_NULLS ON
+GO
+
+SET QUOTED_IDENTIFIER ON
+GO
+
 CREATE PROCEDURE [dbo].[usp_Trend_Services_Insert]
 
 	@PayLoad xml
@@ -734,4 +949,61 @@ BEGIN
         CLOSE curServices
         DEALLOCATE curServices
 END
+
+
+GO
+
+SET ANSI_NULLS ON
+GO
+
+SET QUOTED_IDENTIFIER ON
+GO
+
+CREATE PROCEDURE [dbo].[usp_Trend_Sessions_Insert]
+
+	@PayLoad xml
+
+AS
+BEGIN
+    SET NOCOUNT ON
+
+	DECLARE @Hostname varchar(50),
+			@Timestamp datetime
+
+	SET @Hostname = @Payload.value('(/Metrics/Hostname)[1]', 'varchar(50)')
+	SET @Timestamp = @Payload.value('(/Metrics/Timestamp)[1]', 'datetime')
+
+	--UPDATE dbo.TrendSessions SET Deleted = 1 WHERE Hostname = @Hostname
+	DELETE FROM dbo.TrendSessions WHERE Hostname = @Hostname
+
+    SET NOCOUNT OFF
+
+	INSERT INTO dbo.TrendSessions (Hostname, Timestamp, ID, SessionName, LogonTime, IdleTime, UserName, State)
+		SELECT
+			@Hostname,
+			@Timestamp,
+			Session.value('ID[1]', 'int') AS ID,
+			Session.value('SessionName[1]', 'varchar(50)') AS SessionName,
+			Session.value('LogonTime[1]', 'datetime') AS LogonTime,
+			Session.value('IdleTime[1]', 'int') AS IdleTime,
+			Session.value('UserName[1]', 'varchar(50)') AS UserName,
+			Session.value('State[1]', 'varchar(50)') AS State
+		FROM
+			@Payload.nodes('(/Metrics/Sessions/Session)') AS S(Session)
+
+	--SELECT
+	--	*
+	--FROM
+	--	dbo.TrendSessions
+	--WHERE
+	--	Hostname = @Hostname
+	--		AND
+	--	Deleted = 1
+
+
+END
+
+
+GO
+
 
