@@ -7,7 +7,7 @@ $orderedFiles = @(
     ".\MeerStackMethods.ps1",
     ".\MeerStackConfig.ps1",
 
-    ".\Modules\Checks\Heartbeat.ps1",
+    ".\Modules\Heartbeat.ps1",
 
     ".\Modules\Checks\Cpu.ps1",
     ".\Modules\Checks\Memory.ps1",
@@ -26,6 +26,8 @@ $orderedFiles = @(
 $header = @'
 $connectionString = "Server=Nick-PC;Database=MeerStack;Integrated Security=True;"
 $scriptVersion = "20250616.2"
+
+$debug = $false
 
 <#
                       ,'''''-._

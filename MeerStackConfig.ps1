@@ -33,6 +33,8 @@ function MeerStack-Configuration {
         $reader = $sqlCommand.ExecuteReader()
 
         if ($reader.Read()) {
+            $config.HeartbeatInterval = [int]$reader["HeartbeatInterval"]
+
             $config.Checks["CPU"] = @{
                 Enabled  = ($reader["Cpu"] -eq $true)
                 Interval = [int]$reader["CpuInterval"]

@@ -1,6 +1,6 @@
 # Loading Modules
 
-. ".\Modules\Checks\Heartbeat.ps1"
+. ".\Modules\Heartbeat.ps1"
 
 . ".\Modules\Checks\Cpu.ps1"
 . ".\Modules\Checks\Memory.ps1"

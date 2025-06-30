@@ -33,16 +33,34 @@ if (Test-Path $logFile) {
 
 MeerStack-Log -Status "INFO " -Message "[Main] MeerStack Starting - Chirrup! .."
 
+if ($debug) { Write-Host -ForegroundColor Red "$(Get-Date -Format "yyyy-MM-dd HH:mm:ss") | [Debug] Mode: ON" }
+
 while ($true) {
     $now = Get-Date
 
-    # Heartbeat
-    try {
-        MeerStack-Log -Status "INFO " -Message "[Main] Calling.. Heartbeat .."
+    if ($debug) {
+        Write-Host -ForegroundColor Yellow "$(Get-Date -Format "yyyy-MM-dd HH:mm:ss") | [Debug] LastRun variable array:"
+        $lastRun | ConvertTo-Json -Depth 10 | Out-String
 
-        Heartbeat
-    } catch {
-        MeerStack-Log -Status "ERROR" -Message "[Main] Error running Heartbeat: $_"
+        Write-Host -ForegroundColor Yellow "$(Get-Date -Format "yyyy-MM-dd HH:mm:ss") | [Debug] Config variable array:"
+        $config | ConvertTo-Json -Depth 10 | Out-String
+    }
+
+    # Heartbeat
+    $interval = $config.HeartbeatInterval
+    $last = $lastRun['Heartbeat']
+
+    if (-not $last -or ($now - $last).TotalSeconds -ge $interval) {
+
+        try {
+            MeerStack-Log -Status "INFO " -Message "[Main] Calling.. Heartbeat .."
+
+            Heartbeat
+            
+            $lastRun['Heartbeat'] = $now
+        } catch {
+            MeerStack-Log -Status "ERROR" -Message "[Main] Error running Heartbeat: $_"
+        }
     }
 
     # Checks
