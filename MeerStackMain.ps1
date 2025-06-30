@@ -93,6 +93,6 @@ while ($true) {
     }
 
     MeerStack-Log -Status "INFO " -Message "[Main] MeerStack is snoozing - Zzz .."
-    
-    Start-Sleep -Seconds 60
+
+    Start-Sleep -Seconds (Get-Random -Minimum 60 -Maximum 120)
 }
