@@ -4,7 +4,7 @@ function Check-Processes {
     )
 
     $hostName = $m_hostName
-    $timestamp = Get-Date -Format "yyyy-MM-dd HH:mm:ss.fffffff"
+    $timestamp = Get-Date -Format "yyyy-MM-dd HH:mm:ss"
 
     $xml = New-Object System.Xml.XmlDocument
     $root = $xml.CreateElement("Metrics")
@@ -51,7 +51,6 @@ function Check-Processes {
             $processesNode.AppendChild($procNode) | Out-Null
         }
         catch {
-            # Skip broken or system-level processes we can't access
             continue
         }
     }
