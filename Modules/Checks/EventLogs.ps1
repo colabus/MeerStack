@@ -16,39 +16,67 @@ function Check-EventLogs {
 
     $filterXml = $filterXml -f $lastTimeCreated
 
-    # Build an XML document
-    $xmlContent = "<EventLogs><Hostname>$($hostName)</Hostname><Timestamp>$($timestamp)</Timestamp><EventLog>`n"
+    $xml = New-Object System.Xml.XmlDocument
+    $root = $xml.CreateElement("Metrics")
+    $xml.AppendChild($root) | Out-Null
+
+    $hostnameElement = $xml.CreateElement("Hostname")
+    $hostnameElement.InnerText = $hostname
+    $root.AppendChild($hostnameElement) | Out-Null
+
+    $timestampElement = $xml.CreateElement("Timestamp")
+    $timestampElement.InnerText = $timestamp
+    $root.AppendChild($timestampElement) | Out-Null
+
+    $eventLogNode = $xml.CreateElement("EventLog")
 
     $events = Get-WinEvent -FilterXml $filterXml -ErrorAction SilentlyContinue
 
     if (-not $events) {
         MeerStack-Log -Status "INFO" -Message "[Check-EventLogs] No matching events found."
     }
-
-    foreach ($event in $events)
+    else
     {
-        # Convert event to XML and log
-            $xmlContent += @"
-<Event>
-  <LogName>$($event.LogName)</LogName>
-  <LevelDisplayName>$($event.LevelDisplayName)</LevelDisplayName>
-  <TimeCreated>$($event.TimeCreated.ToString("yyyy-MM-dd HH:mm:ss.fffffff"))</TimeCreated>
-  <ProviderName>$($event.ProviderName)</ProviderName>
-  <TaskDisplayName>$($event.TaskDisplayName)</TaskDisplayName>
-  <Message><![CDATA[$($event.Message)]]></Message>
-  <ID>$($event.Id)</ID>
-  <RecordID>$($event.RecordID)</RecordID>
-</Event>
-"@
-    }
+        foreach ($event in $events)
+        {
+            try {
+                $eventNode = $xml.CreateElement("Event")
 
-    $xmlContent += "</EventLog></EventLogs>"
+                $properties = @{
+                    LogName             = $event.LogName
+                    LevelDisplayName    = $event.LevelDisplayName
+                    TimeCreated         = $event.TimeCreated.ToString("yyyy-MM-dd HH:mm:ss.fffffff")
+                    ProviderName        = $event.ProviderName
+                    TaskDisplayName     = $event.TaskDisplayName
+                    Message             = $event.Message
+                    Id                  = $event.Id
+                    RecordID            = $event.RecordID
+                    MachineName         = $event.MachineName
+                }
 
-    # Convert string to XML object
-    $xml = [xml]$xmlContent
+                foreach ($pair in $properties.GetEnumerator()) {
+                    $node = $xml.CreateElement($pair.Key)
+                    
+                    if ($pair.Key -eq "Message") {
+                        $cdata = $xml.CreateCDataSection($pair.Value)
+                        $node.AppendChild($cdata) | Out-Null
+                    }
+                    else {
+                        $node.InnerText = $pair.Value
+                    }
+                    
+                    $eventNode.AppendChild($node) | Out-Null
+                }
 
-    if ($xml.EventLogs.EventLog.Event.Count -ne 0)
-    {
+                $eventLogNode.AppendChild($eventNode) | Out-Null
+            }
+             catch {
+                continue
+            }
+        }
+
+        $root.AppendChild($eventLogNode) | Out-Null
+
         Check-Log -Component "EventLogs" -XmlData $xml
     }
 }
