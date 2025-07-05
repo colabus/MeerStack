@@ -23,7 +23,7 @@ function Check-Sessions {
     $positions = @{
         UserName      = 1
         SessionName   = 23
-        Id            = 41
+        Id            = 40
         State         = 46
         IdleTime      = 53
         LogonTime     = 65
@@ -31,8 +31,8 @@ function Check-Sessions {
 
     foreach ($line in $sessions) {
         $userName    = $line.Substring($positions['UserName'], 22).Trim()
-        $sessionName = $line.Substring($positions['SessionName'], 18).Trim()
-        $id          = $line.Substring($positions['Id'], 3).Trim()
+        $sessionName = $line.Substring($positions['SessionName'], 17).Trim()
+        $id          = $line.Substring($positions['Id'], 4).Trim()
         $state       = $line.Substring($positions['State'], 8).Trim() -replace 'Disc', 'Disconnected'
 
         $idleTime    = $line.Substring($positions['IdleTime'], 10).Trim()

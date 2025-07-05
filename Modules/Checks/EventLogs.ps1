@@ -17,7 +17,7 @@ function Check-EventLogs {
     $filterXml = $filterXml -f $lastTimeCreated
 
     $xml = New-Object System.Xml.XmlDocument
-    $root = $xml.CreateElement("Metrics")
+    $root = $xml.CreateElement("EventLogs")
     $xml.AppendChild($root) | Out-Null
 
     $hostnameElement = $xml.CreateElement("Hostname")
@@ -64,7 +64,7 @@ function Check-EventLogs {
                     else {
                         $node.InnerText = $pair.Value
                     }
-                    
+
                     $eventNode.AppendChild($node) | Out-Null
                 }
 
