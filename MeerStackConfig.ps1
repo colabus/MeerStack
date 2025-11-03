@@ -83,15 +83,27 @@ function MeerStack-Configuration {
                 Interval = [int]$reader["ProcessesInterval"]
             }
 
+            $config.Checks["Connections"] = @{
+                Enabled  = ($reader["Connections"] -eq $true)
+                Interval = [int]$reader["ConnectionsInterval"]
+            }
+
             $config.ScriptVersion = $reader["ScriptVersion"]
 
             MeerStack-Log -Status "INFO " -Message "[Config] Loaded configuration for $hostname.."
 
             if ($scriptVersion -ne $config.ScriptVersion)
             {
-                MeerStack-Log -Status "ERROR" -Message "[Config] Script version mismatches database version.."
+                MeerStack-Log -Status "ERROR" -Message "[Config] Script version mismatches database version.. Script: $scriptVersion, Database: $($config.ScriptVersion)"
 
-                Exit 1
+                if ($MyInvocation.ScriptName -like '*netlogon*')
+                {
+                    Exit 1
+                }
+                else
+                {
+                    MeerStack-Log -Status "ERROR" -Message "[Config] Script version mismatch.. continuing.."
+                }
             }
         }
         else {

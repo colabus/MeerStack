@@ -29,6 +29,7 @@ function Check-Processes {
             $properties = @{
                 Name         = $process.Name
                 PID          = $process.ProcessId
+                ParentPid    = $process.ParentProcessId
                 Path         = $process.ExecutablePath
                 CommandLine  = $process.CommandLine
                 StartTime    = $process.CreationDate
