@@ -18,7 +18,7 @@ function Check-Connections {
 
     $ConnectionsNode = $xml.CreateElement("Connections")
 
-    $Connections = netstat -an 2>$null | Select-Object -Skip 4
+    $Connections = netstat -ano 2>$null | Select-Object -Skip 4
 
     foreach ($line in $Connections) {
         $parts = $line -split "\s+" | Where-Object { $_ -ne "" }
@@ -30,6 +30,7 @@ function Check-Connections {
             LocalAddress    = $parts[1]
             RemoteAddress   = $parts[2]
             State           = $parts[3]
+            PID             = $parts[4]
         }
 
         foreach ($pair in $Connection.GetEnumerator()) {
