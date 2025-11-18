@@ -26,7 +26,7 @@ $orderedFiles = @(
 
 $header = @'
 $connectionString = "Server=Nick-PC;Database=MeerStack;Integrated Security=True;"
-$scriptVersion = "20250616.2"
+$scriptVersion = "20251118.1"
 
 $debug = $false
 
