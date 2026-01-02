@@ -30,6 +30,7 @@ function Heartbeat {
         OS                          = "$($os.Caption) $($os.OSArchitecture)"
         CurrentTimeZone             = $($os.CurrentTimeZone)
         Domain                      = $($cs.Domain)
+        LogonServer                 = $($env:LOGONSERVER -replace '\\', '')
         TotalMemoryGB               = $([math]::Round($cs.TotalPhysicalMemory / 1GB, 2))
         CPU                         = $($cpu.Name)
         NumberOfLogicalProcessors   = $($cs.NumberOfLogicalProcessors)
