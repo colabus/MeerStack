@@ -23,6 +23,9 @@ function Heartbeat {
     $bootTime = $os.LastBootUpTime
     $uptime = (Get-Date) - $bootTime
 
+    $firewallActiveProfile = (Get-NetFirewallSetting -PolicyStore ActiveStore).ActiveProfile
+    $firewallProfileEnabled = (Get-NetFirewallProfile -Name $firewallProfile).Enabled
+
     $heartbeat = @{
         IPAddresses                 = ([System.Net.Dns]::GetHostAddresses($hostname) |
             Where-Object { $_.AddressFamily -eq 'InterNetwork' } |
@@ -43,7 +46,10 @@ function Heartbeat {
         CPU                         = $($cpu.Name)
         NumberOfLogicalProcessors   = $($cs.NumberOfLogicalProcessors)
         BootTime                    = $($bootTime.ToString("yyyy-MM-dd HH:mm:ss"))
-        NetFirewall                 = (Get-NetFirewallProfile).Enabled -contains $true
+
+        # Firewall
+        FirewallActiveProfile       = $firewallActiveProfile
+        FirewallProfileEnabled      = $firewallProfileEnabled
         
         # MeerStack
         MeerStackScriptName         = $MyInvocation.ScriptName
