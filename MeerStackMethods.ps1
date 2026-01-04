@@ -8,7 +8,7 @@ function MeerStack-ConnectionInfo {
         [Parameter(Mandatory = $true)]
         [ValidateNotNullOrEmpty()]
         [string]$Server             = '',
-        [string]$Database    = 'MeerStack'
+        [string]$Database           = 'MeerStack'
     )
     $ConfigurationFile = Join-Path -Path $PSScriptRoot -ChildPath $ConfigurationFile
 
