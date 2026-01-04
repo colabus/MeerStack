@@ -30,13 +30,28 @@ function Heartbeat {
         OS                          = "$($os.Caption) $($os.OSArchitecture)"
         CurrentTimeZone             = $($os.CurrentTimeZone)
         Domain                      = $($cs.Domain)
-        LogonServer                 = $($env:LOGONSERVER -replace '\\', '')
+        LogonServer                 = $(try {
+            if ((Get-CimInstance Win32_ComputerSystem).PartOfDomain) {
+                [System.DirectoryServices.ActiveDirectory.Domain]::GetCurrentDomain().FindDomainController().Name
+            } else {
+                $m_hostName
+            }
+        } catch {
+            $null
+        })
         TotalMemoryGB               = $([math]::Round($cs.TotalPhysicalMemory / 1GB, 2))
         CPU                         = $($cpu.Name)
         NumberOfLogicalProcessors   = $($cs.NumberOfLogicalProcessors)
         BootTime                    = $($bootTime.ToString("yyyy-MM-dd HH:mm:ss"))
+        NetFirewall                 = (Get-NetFirewallProfile).Enabled -contains $true
+        
+        # MeerStack
         MeerStackScriptName         = $MyInvocation.ScriptName
         MeerStackScriptVersion      = $scriptVersion
+        
+        # PowerShell
+        PSVersion                   = $PSVersionTable.PSVersion.ToString()
+        PSEdition                   = $PSVersionTable.PSEdition
     }
 
     foreach ($pair in $heartbeat.GetEnumerator()) {

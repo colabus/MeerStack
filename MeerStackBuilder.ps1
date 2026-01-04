@@ -25,8 +25,8 @@ $orderedFiles = @(
 )
 
 $header = @'
-$connectionString = "Server=Nick-PC;Database=MeerStack;Integrated Security=True;"
-$scriptVersion = "20251118.1"
+$connectionServer = "Nick-PC"
+$scriptVersion = "20260104.1"
 
 $debug = $false
 
@@ -91,7 +91,7 @@ foreach ($file in $orderedFiles) {
         -replace '\s*#.*$', '' `
         -replace '^\s*$', '' `
         -replace '[ \t]{2,}', ' ' `
-        -replace '^\s*\$connectionString.*', '' `
+        -replace '^\s*\$$connectionServer.*', '' `
         -replace '^\s*\$scriptVersion.*', '' `
         -join "`n"
 

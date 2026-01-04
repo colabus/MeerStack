@@ -1,5 +1,46 @@
 # MeerStack Core Methods
 
+function MeerStack-ConnectionInfo {
+    [CmdletBinding()]
+    param(
+        [string]$ConfigurationFile  = 'MeerStack.config.json',
+
+        [Parameter(Mandatory = $true)]
+        [ValidateNotNullOrEmpty()]
+        [string]$Server             = '',
+        [string]$Database    = 'MeerStack'
+    )
+    $ConfigurationFile = Join-Path -Path $PSScriptRoot -ChildPath $ConfigurationFile
+
+    $connectionString = New-Object System.Data.SqlClient.SqlConnectionStringBuilder
+
+    $connectionString['Data Source'] = $Server
+    $connectionString['Initial Catalog'] = $Database
+
+    if (Test-Path $ConfigurationFile) {
+        MeerStack-Log -Status "INFO " -Message "[ConnInfo] Configuration file present, loading.."
+
+        $config = Get-Content -LiteralPath $ConfigurationFile -Raw -ErrorAction Stop | ConvertFrom-Json -ErrorAction Stop
+
+        if ([string]::IsNullOrWhiteSpace($config.UserId) -or ([string]::IsNullOrWhiteSpace($config.DpapiPassword))) {
+            MeerStack-Log -Status "ERROR" -Message "[ConnInfo] MeerStack.config.json missing all elements.."
+
+            Exit 1
+        }
+        else {
+            $password = [Runtime.InteropServices.Marshal]::PtrToStringAuto([Runtime.InteropServices.Marshal]::SecureStringToBSTR( (ConvertTo-SecureString -string ([string]$config.DpapiPassword).ToString())))
+
+            $connectionString['User Id'] = [string]$config.UserId
+            $connectionString['Password'] = $password
+        }
+    }
+    else {
+        $connectionString['Integrated Security'] = $true
+    }
+
+    return $connectionString.connectionString
+}
+
 function MeerStack-Log {
     param (
         [string]$Status,

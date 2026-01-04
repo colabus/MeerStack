@@ -1,4 +1,5 @@
 $scriptVersion = "20250616.2"
+$connectionString = MeerStack-ConnectionInfo -Server $connectionServer
 
 $config = @{
     Checks = @{ }
