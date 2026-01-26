@@ -24,7 +24,7 @@ function Heartbeat {
     $uptime = (Get-Date) - $bootTime
 
     $firewallActiveProfile = (Get-NetFirewallSetting -PolicyStore ActiveStore).ActiveProfile
-    $firewallProfileEnabled = (Get-NetFirewallProfile -Name $firewallProfile).Enabled
+    $firewallProfileEnabled = (Get-NetFirewallProfile -Name $firewallActiveProfile).Enabled
 
     $heartbeat = @{
         IPAddresses                 = ([System.Net.Dns]::GetHostAddresses($hostname) |
