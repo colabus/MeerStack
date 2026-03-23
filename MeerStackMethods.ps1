@@ -104,8 +104,12 @@ function Process-Logs {
     $connString = $config.Database.ConnectionString
     $logFiles = Get-ChildItem -Path $logPath -Filter *.log -File
 
-    foreach ($file in $logFiles) {
-        try {
+    $sqlConn = New-Object System.Data.SqlClient.SqlConnection $connString
+
+    try {
+        $sqlConn.Open()
+
+        foreach ($file in $logFiles) {
             MeerStack-Log -Status "INFO" -Message "[Process-Logs] Processing $($file.Name)..."
 
             $payloads = @()
@@ -119,13 +123,12 @@ function Process-Logs {
                 $payloads += Get-Content -Path $file.FullName | Where-Object { -not [string]::IsNullOrWhiteSpace($_) }
             }
 
-            foreach ($payload in $payloads) {
+            $transaction = $sqlConn.BeginTransaction()
 
-                $sqlConn = New-Object System.Data.SqlClient.SqlConnection $connString
-
-                try {
-                    $sqlConn.Open()
+            try {
+                foreach ($payload in $payloads) {
                     $sqlCmd = $sqlConn.CreateCommand()
+                    $sqlCmd.Transaction = $transaction
                     $sqlCmd.CommandText = "usp_Check_Log_Insert"
                     $sqlCmd.CommandType = [System.Data.CommandType]::StoredProcedure
 
@@ -133,22 +136,35 @@ function Process-Logs {
                     $sqlCmd.Parameters.Add("@Filename", [System.Data.SqlDbType]::NVarChar, 50).Value = $file.Name
                     $sqlCmd.Parameters.Add("@Payload", [System.Data.SqlDbType]::Xml).Value = $payload
 
-                    $null = $sqlCmd.ExecuteNonQuery()
+                    try {
+                        $null = $sqlCmd.ExecuteNonQuery()
+                    }
+                    finally {
+                        $sqlCmd.Dispose()
+                    }
                 }
-                catch {
-                    MeerStack-Log -Status "ERROR" -Message "[Process-Logs] Failed payload insert in $($file.Name): $_"
-                }
-                finally {
-                    if ($sqlConn.State -eq 'Open') { $sqlConn.Close() }
-                    $sqlConn.Dispose()
-                }
+
+                $transaction.Commit()
+
+                MeerStack-Log -Status "INFO" -Message "[Process-Logs] Deleting $($file.Name)..."
+                Remove-Item $file.FullName -Force
+            }
+            catch {
+                MeerStack-Log -Status "ERROR" -Message "[Process-Logs] Error processing $($file.Name): $_ ... Rolling back transaction."
+
+                try { $transaction.Rollback() } catch {}
+            }
+            finally {
+                $transaction.Dispose()
             }
 
-            MeerStack-Log -Status "INFO" -Message "[Process-Logs] Deleting $($file.Name)..."
-            Remove-Item $file.FullName -Force
         }
-        catch {
-            MeerStack-Log -Status "ERROR" -Message "[Process-Logs] Error processing $($file.Name): $_"
-        }
+    }
+    catch {
+        MeerStack-Log -Status "ERROR" -Message "[Process-Logs] Failed to open database connection: $_"
+    }
+    finally {
+        if ($sqlConn.State -eq 'Open') { $sqlConn.Close() }
+        $sqlConn.Dispose()
     }
 }
