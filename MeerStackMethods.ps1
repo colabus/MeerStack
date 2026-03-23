@@ -104,6 +104,8 @@ function Process-Logs {
     $connString = $config.Database.ConnectionString
     $logFiles = Get-ChildItem -Path $logPath -Filter *.log -File
 
+    if (-not $logFiles) { return }
+
     $sqlConn = New-Object System.Data.SqlClient.SqlConnection $connString
 
     try {
