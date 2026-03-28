@@ -61,6 +61,8 @@ ___,-| |----''    / |         `._`-.          `----
 
 #>
 
+if ($debug) { Write-Host -ForegroundColor White "$(Get-Date -Format "yyyy-MM-dd HH:mm:ss") | [Debug] Mode: ON" }
+
 '@
 
 $header = $header + @"

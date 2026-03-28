@@ -1,3 +1,5 @@
+if ($debug) { Write-Host -ForegroundColor White "$(Get-Date -Format "yyyy-MM-dd HH:mm:ss") | [Debug] Loading Config .." }
+
 $scriptVersion = "20250616.2"
 $connectionString = MeerStack-ConnectionInfo -Server $connectionServer
 

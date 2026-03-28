@@ -3,44 +3,54 @@ function Check-Services {
         [hashtable]$config
     )
 
-    $hostName = $m_hostName
+    $hostName  = $m_hostName
     $timestamp = Get-Date -Format "yyyy-MM-dd HH:mm:ss"
-    $services = $config.Checks.Services.ServicesToCheck
+    $services  = $config.Checks.Services.ServicesToCheck
+ 
+    $xml  = New-Object System.Xml.XmlDocument
+    $root = $xml.CreateElement("Metrics")
+    $xml.AppendChild($root) | Out-Null
+ 
+    $hostnameElement = $xml.CreateElement("Hostname")
+    $hostnameElement.InnerText = $hostName
+    $root.AppendChild($hostnameElement) | Out-Null
+ 
+    $timestampElement = $xml.CreateElement("Timestamp")
+    $timestampElement.InnerText = $timestamp
+    $root.AppendChild($timestampElement) | Out-Null
+ 
+    $servicesNode = $xml.CreateElement("Services")
 
-    # Build an XML document
-    $xmlContent = "<Metrics><Hostname>$($hostName)</Hostname><Timestamp>$($timestamp)</Timestamp><Services>`n"
-
+    $servicesObj = Get-Service | Select Name, DisplayName, Status, StartType
+ 
     foreach ($svc in $services) {
-        $serviceObj = Get-Service -Name $svc -ErrorAction SilentlyContinue
-
+        $serviceObj = $servicesObj | Where-Object Name -eq $svc
+ 
+        $serviceNode = $xml.CreateElement("Service")
+ 
         if ($null -ne $serviceObj) {
-            $xmlContent += @"
-<Service>
-    <Name>$($serviceObj.Name)</Name>
-    <DisplayName>$($serviceObj.DisplayName)</DisplayName>
-    <Status>$($serviceObj.Status)</Status>
-    <StartType>$($serviceObj.StartType)</StartType>
-</Service>
-"@
+            $service = @{
+                Name           = $serviceObj.Name
+                DisplayName = $serviceObj.DisplayName
+                Status      = $serviceObj.Status
+                StartType   = $serviceObj.StartType
+            }
         } else {
-            if ($config.Checks.Services.Verbose) {
-            $xmlContent += @"
-  <Service>
-    <Name>$svc</Name>
-    <Error>Service not found.</Error>
-  </Service>
-"@
+            continue
         }
+ 
+        foreach ($pair in $service.GetEnumerator()) {
+            $element = $xml.CreateElement($pair.Key)
+            $element.InnerText = $pair.Value
+            $serviceNode.AppendChild($element) | Out-Null
+        }
+ 
+        $servicesNode.AppendChild($serviceNode) | Out-Null
     }
-    }
-
-    $xmlContent += "</Services></Metrics>"
-
-    # Convert string to XML object
-    $xml = [xml]$xmlContent
-
-    if ($xml.Metrics.Services.ChildNodes.Count -ne 0)
-    {
+ 
+    $root.AppendChild($servicesNode) | Out-Null
+ 
+    if ($servicesNode.ChildNodes.Count -ne 0) {
         Check-Log -Component "Services" -XmlData $xml
     }
 }

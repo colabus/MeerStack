@@ -1,3 +1,5 @@
+if ($debug) { Write-Host -ForegroundColor White "$(Get-Date -Format "yyyy-MM-dd HH:mm:ss") | [Debug] Loading Methods .." }
+
 # MeerStack Core Methods
 
 function MeerStack-ConnectionInfo {

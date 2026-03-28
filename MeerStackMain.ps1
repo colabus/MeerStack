@@ -10,6 +10,8 @@ $connectionServer = "Nick-PC"
 
 . ".\MeerStackModules.ps1"
 
+MeerStack-Log -Status "INFO " -Message "[Main] MeerStack Starting - Chirrup! .."
+
 $lastRun = @{}
 
 $logFile = Join-Path $config.LocalPath "MeerStack.log"
@@ -30,10 +32,6 @@ if (Test-Path $logFile) {
         MeerStack-Log -Status "ERROR" -Message "[Main] Failed to compress/delete $($logFile): $_"
     }
 }
-
-MeerStack-Log -Status "INFO " -Message "[Main] MeerStack Starting - Chirrup! .."
-
-if ($debug) { Write-Host -ForegroundColor Red "$(Get-Date -Format "yyyy-MM-dd HH:mm:ss") | [Debug] Mode: ON" }
 
 while ($true) {
     $now = Get-Date
