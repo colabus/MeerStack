@@ -17,6 +17,7 @@ function Check-Sessions {
     $root.AppendChild($timestampElement) | Out-Null
 
     $sessionsNode = $xml.CreateElement("Sessions")
+    $sessionsNode.SetAttribute("version", "2.0")
 
     $sessions = quser 2>$null | Select-Object -Skip 1
 

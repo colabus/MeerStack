@@ -6,6 +6,7 @@ function Heartbeat {
     $xml = New-Object System.Xml.XmlDocument
 
     $root = $xml.CreateElement("Heartbeat")
+    $root.SetAttribute("version", "2.0")
     $xml.AppendChild($root) | Out-Null
 
     $hostnameElement = $xml.CreateElement("Hostname")

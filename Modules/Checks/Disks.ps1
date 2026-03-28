@@ -20,6 +20,7 @@ function Check-Disks {
  
     # Disks
     $disksNode = $xml.CreateElement("Disks")
+    $disksNode.SetAttribute("version", "2.0")
 
     $drives = Get-CimInstance -ClassName Win32_LogicalDisk -Filter "DriveType = 3"
  

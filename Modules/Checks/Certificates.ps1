@@ -20,6 +20,7 @@ function Check-Certificates {
  
     # Certificates
     $certificatesNode = $xml.CreateElement("Certificates")
+    $certificatesNode.SetAttribute("version", "2.0")
 
     $store = New-Object System.Security.Cryptography.X509Certificates.X509Store "My", "LocalMachine"
     $store.Open("ReadOnly")

@@ -18,6 +18,7 @@ function Check-EventLogs {
 
     $xml = New-Object System.Xml.XmlDocument
     $root = $xml.CreateElement("EventLogs")
+    $root.SetAttribute("version", "2.0")
     $xml.AppendChild($root) | Out-Null
 
     $hostnameElement = $xml.CreateElement("Hostname")

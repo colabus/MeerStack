@@ -20,6 +20,7 @@ function Check-Services {
     $root.AppendChild($timestampElement) | Out-Null
  
     $servicesNode = $xml.CreateElement("Services")
+    $servicesNode.SetAttribute("version", "2.0")
 
     $servicesObj = Get-Service | Select Name, DisplayName, Status, StartType
  

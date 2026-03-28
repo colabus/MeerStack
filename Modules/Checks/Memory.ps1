@@ -21,6 +21,7 @@ function Check-Memory {
 
     # Memory
     $memoryNode = $xml.CreateElement("Memory")
+    $memoryNode.SetAttribute("version", "2.0")
 
     $memory = Get-CimInstance Win32_OperatingSystem
 

@@ -19,6 +19,7 @@ function Check-Processes {
     $root.AppendChild($timestampElement) | Out-Null
 
     $processesNode = $xml.CreateElement("Processes")
+    $processesNode.SetAttribute("version", "2.0")
 
     $processList = Get-CimInstance Win32_Process
 

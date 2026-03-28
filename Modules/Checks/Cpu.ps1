@@ -21,6 +21,7 @@ function Check-CPU {
 
     # CPU
     $cpuNode = $xml.CreateElement("CPU")
+    $cpuNode.SetAttribute("version", "2.0")
 
     $cpuLoad = (Get-Counter '\Processor(_Total)\% Processor Time').CounterSamples.CookedValue
 

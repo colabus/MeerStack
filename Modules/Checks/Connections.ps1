@@ -17,6 +17,7 @@ function Check-Connections {
     $root.AppendChild($timestampElement) | Out-Null
 
     $ConnectionsNode = $xml.CreateElement("Connections")
+    $ConnectionsNode.SetAttribute("version", "2.0")
 
     $Connections = netstat -ano 2>$null | Select-Object -Skip 4
 
