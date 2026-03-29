@@ -6,11 +6,11 @@ $connectionServer = "Nick-PC"
 
 . ".\MeerStackMethods.ps1"
 
+MeerStack-Log -Status "INFO " -Message "[Main] MeerStack initialising - Purr! .."
+
 . ".\MeerStackConfig.ps1"
 
 . ".\MeerStackModules.ps1"
-
-MeerStack-Log -Status "INFO " -Message "[Main] MeerStack Starting - Chirrup! .."
 
 $lastRun = @{}
 
@@ -32,6 +32,8 @@ if (Test-Path $logFile) {
         MeerStack-Log -Status "ERROR" -Message "[Main] Failed to compress/delete $($logFile): $_"
     }
 }
+
+MeerStack-Log -Status "INFO " -Message "[Main] MeerStack Starting - Chirrup! .."
 
 while ($true) {
     $now = Get-Date

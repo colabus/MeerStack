@@ -55,6 +55,7 @@ function Heartbeat {
         # MeerStack
         MeerStackScriptName         = $MyInvocation.ScriptName
         MeerStackScriptVersion      = $scriptVersion
+        MeerStackScriptStartTime    = $($m_scriptStartTime.ToString("yyyy-MM-dd HH:mm:ss"))
         
         # PowerShell
         PSVersion                   = $PSVersionTable.PSVersion.ToString()

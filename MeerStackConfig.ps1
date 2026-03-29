@@ -1,6 +1,6 @@
 if ($debug) { Write-Host -ForegroundColor White "$(Get-Date -Format "yyyy-MM-dd HH:mm:ss") | [Debug] Loading Config .." }
 
-$scriptVersion = "20250616.2"
+$scriptVersion = "20251118.1"
 $connectionString = MeerStack-ConnectionInfo -Server $connectionServer
 
 $config = @{
@@ -13,6 +13,26 @@ $config = @{
     Configuration = @{ Interval = 60 }
 
     LocalPath = "C:\MeerStack"
+}
+
+function Get-ReaderValue {
+    param (
+        [System.Data.SqlClient.SqlDataReader]$Reader,
+        [string]$Column,
+        $Default = $null
+    )
+    try {
+        $ordinal = $Reader.GetOrdinal($Column)
+    } catch {
+        MeerStack-Log -Status "WARN " -Message "[Config] Column '$Column' not found in result set .."
+
+        return $Default
+    }
+    if ($Reader.IsDBNull($ordinal)) {
+        return $Default
+    }
+
+    return $Reader.GetValue($ordinal)
 }
 
 function MeerStack-Configuration {
@@ -36,62 +56,67 @@ function MeerStack-Configuration {
         $reader = $sqlCommand.ExecuteReader()
 
         if ($reader.Read()) {
-            $config.HeartbeatInterval = [int]$reader["HeartbeatInterval"]
+
+            $config.HeartbeatInterval = [int](Get-ReaderValue -Reader $reader -Column "HeartbeatInterval" -Default 90)
 
             $config.Checks["CPU"] = @{
-                Enabled  = ($reader["Cpu"] -eq $true)
-                Interval = [int]$reader["CpuInterval"]
+                Enabled         = ((Get-ReaderValue -Reader $reader -Column "Cpu" -Default $false) -eq $true)
+                Interval        = [int](Get-ReaderValue -Reader $reader -Column "CpuInterval" -Default 600)
             }
 
             $config.Checks["Memory"] = @{
-                Enabled  = ($reader["Memory"] -eq $true)
-                Interval = [int]$reader["MemoryInterval"]
+                Enabled         = ((Get-ReaderValue -Reader $reader -Column "Memory" -Default $false) -eq $true)
+                Interval        = [int](Get-ReaderValue -Reader $reader -Column "MemoryInterval" -Default 1800)
             }
 
+            $servicesToCheck = Get-ReaderValue -Reader $reader -Column "ServicesToCheck" -Default ""
             $config.Checks["Services"] = @{
-                Enabled         = ($reader["Services"] -eq $true)
-                Interval        = [int]$reader["ServicesInterval"]
-                ServicesToCheck = if ($reader["ServicesToCheck"]) {
-                    $reader["ServicesToCheck"] -split '[,;]' | ForEach-Object { $_.Trim() }
+                Enabled         = ((Get-ReaderValue -Reader $reader -Column "Services" -Default $false) -eq $true)
+                Interval        = [int](Get-ReaderValue -Reader $reader -Column "ServicesInterval" -Default 300)
+                ServicesToCheck = if ($servicesToCheck) {
+                    $servicesToCheck -split '[,;]' | ForEach-Object { $_.Trim() }
                 } else {
                     @()
                 }
-                Verbose         = ($reader["ServicesVerbose"] -eq $true)
+                Verbose         = ((Get-ReaderValue -Reader $reader -Column "ServicesVerbose" -Default $false) -eq $true)
             }
 
             $config.Checks["Disks"] = @{
-                Enabled  = ($reader["Disks"] -eq $true)
-                Interval = [int]$reader["DisksInterval"]
+                Enabled         = ((Get-ReaderValue -Reader $reader -Column "Disks" -Default $false) -eq $true)
+                Interval        = [int](Get-ReaderValue -Reader $reader -Column "DisksInterval" -Default 14400)
             }
-
+ 
             $config.Checks["Certificates"] = @{
-                Enabled  = ($reader["Certificates"] -eq $true)
-                Interval = [int]$reader["CertificatesInterval"]
+                Enabled         = ((Get-ReaderValue -Reader $reader -Column "Certificates" -Default $false) -eq $true)
+                Interval        = [int](Get-ReaderValue -Reader $reader -Column "CertificatesInterval" -Default 84600)
             }
-
+ 
+            $eventLogsLastUpdated = Get-ReaderValue -Reader $reader -Column "EventLogsLastUpdated" -Default $null
             $config.Checks["EventLogs"] = @{
-                Enabled  = ($reader["EventLogs"] -eq $true)
-                Interval = [int]$reader["EventLogsInterval"]
-                XmlFilter = [string]$reader["EventLogsXmlFilter"]
-                LastUpdated = [DateTime]$reader["EventLogsLastUpdated"]
+                Enabled         = ((Get-ReaderValue -Reader $reader -Column "EventLogs" -Default $false) -eq $true)
+                Interval        = [int](Get-ReaderValue -Reader $reader -Column "EventLogsInterval" -Default 600)
+                XmlFilter       = [string](Get-ReaderValue -Reader $reader -Column "EventLogsXmlFilter"   -Default "")
+                LastUpdated     = if ($null -ne $eventLogsLastUpdated) { [DateTime]$eventLogsLastUpdated } else { (Get-Date) }
             }
-
+ 
             $config.Checks["Sessions"] = @{
-                Enabled  = ($reader["Sessions"] -eq $true)
-                Interval = [int]$reader["SessionsInterval"]
+                Enabled         = ((Get-ReaderValue -Reader $reader -Column "Sessions" -Default $false) -eq $true)
+                Interval        = [int](Get-ReaderValue -Reader $reader -Column "SessionsInterval" -Default 300)
             }
-
+ 
             $config.Checks["Processes"] = @{
-                Enabled  = ($reader["Processes"] -eq $true)
-                Interval = [int]$reader["ProcessesInterval"]
+                Enabled         = ((Get-ReaderValue -Reader $reader -Column "Processes" -Default $false) -eq $true)
+                Interval        = [int](Get-ReaderValue -Reader $reader -Column "ProcessesInterval" -Default 300)
             }
-
+ 
             $config.Checks["Connections"] = @{
-                Enabled  = ($reader["Connections"] -eq $true)
-                Interval = [int]$reader["ConnectionsInterval"]
+                Enabled         = ((Get-ReaderValue -Reader $reader -Column "Connections" -Default $false) -eq $true)
+                Interval        = [int](Get-ReaderValue -Reader $reader -Column "ConnectionsInterval" -Default 300)
             }
+ 
+            $config.ScriptVersion = Get-ReaderValue -Reader $reader -Column "ScriptVersion" -Default $null
 
-            $config.ScriptVersion = $reader["ScriptVersion"]
+            $config.MeerStackForceExit = Get-ReaderValue -Reader $reader -Column "MeerStackForceExit" -Default $null
 
             MeerStack-Log -Status "INFO " -Message "[Config] Loaded configuration for $hostname.."
 
@@ -107,6 +132,13 @@ function MeerStack-Configuration {
                 {
                     MeerStack-Log -Status "ERROR" -Message "[Config] Script version mismatch.. continuing.."
                 }
+            }
+
+            if ($null -ne $config.MeerStackForceExit -and [DateTime]$config.MeerStackForceExit -gt (Get-Date))
+            {
+                MeerStack-Log -Status "INFO " -Message "[Main] Forced exit triggered by database (Threshold Date: $($config.MeerStackForceExit.ToString("yyyy-MM-dd HH:mm:ss.fffffff"))) - terminating .."
+
+                Exit 1
             }
         }
         else {

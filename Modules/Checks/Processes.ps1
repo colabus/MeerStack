@@ -18,14 +18,33 @@ function Check-Processes {
     $timestampElement.InnerText = $timestamp
     $root.AppendChild($timestampElement) | Out-Null
 
+    # Processes
     $processesNode = $xml.CreateElement("Processes")
     $processesNode.SetAttribute("version", "2.0")
 
     $processList = Get-CimInstance Win32_Process
 
+    $shaCache = @{}
+    $processList |
+        Where-Object { $_.ExecutablePath -and (Test-Path $_.ExecutablePath) } |
+        Select-Object -ExpandProperty ExecutablePath -Unique |
+        ForEach-Object {
+            try {
+                $shaCache[$_] = (Get-FileHash -Algorithm SHA256 -Path $_ -ErrorAction Stop).Hash
+            } catch {
+                $shaCache[$_] = $null
+            }
+        }
+
     foreach ($process in $processList) {
         try {
             $procNode = $xml.CreateElement("Process")
+
+            $sha256 = if ($process.ExecutablePath -and $shaCache.ContainsKey($process.ExecutablePath)) {
+                $shaCache[$process.ExecutablePath]
+            } else {
+                $null
+            }
 
             $properties = @{
                 Name         = $process.Name
@@ -35,13 +54,7 @@ function Check-Processes {
                 CommandLine  = $process.CommandLine
                 StartTime    = $process.CreationDate
                 SessionId    = $process.SessionId
-                SHA256       = if ($process.ExecutablePath -and (Test-Path $process.ExecutablePath)) {
-                    try {
-                        (Get-FileHash -Algorithm SHA256 -Path $process.ExecutablePath -ErrorAction Stop).Hash
-                    } catch { $null }
-                } else {
-                    $null
-                }
+                SHA256       = $sha256
             }
 
             foreach ($pair in $properties.GetEnumerator()) {

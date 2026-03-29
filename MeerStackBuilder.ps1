@@ -26,7 +26,7 @@ $orderedFiles = @(
 
 $header = @'
 $connectionServer = "Nick-PC"
-$scriptVersion = "20260104.1"
+$scriptVersion = "20251118.1"
 
 $debug = $false
 
