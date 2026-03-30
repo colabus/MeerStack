@@ -93,7 +93,7 @@ foreach ($file in $orderedFiles) {
         -replace '\s*#.*$', '' `
         -replace '^\s*$', '' `
         -replace '[ \t]{2,}', ' ' `
-        -replace '^\s*\$$connectionServer.*', '' `
+        -replace '^\s*\$connectionServer.*', '' `
         -replace '^\s*\$scriptVersion.*', '' `
         -join "`n"
 
