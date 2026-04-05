@@ -1,7 +1,6 @@
 CREATE TABLE [dbo].[Heartbeats](
 	[Hostname] [varchar](50) NOT NULL,
 	[Timestamp] [datetime] NULL,
-	[Server] [varchar](50) NULL,
 	[IPAddresses] [varchar](100) NULL,
 	[OS] [varchar](max) NULL,
 	[CurrentTimeZone] [int] NULL,
@@ -20,10 +19,10 @@ CREATE TABLE [dbo].[Heartbeats](
 	[FirewallActiveProfile] [varchar](50) NULL,
 	[PSVersion] [varchar](50) NULL,
 	[PSEdition] [varchar](50) NULL,
+	[RebootRequired] [bit] NULL,
  CONSTRAINT [PK_Heartbeats] PRIMARY KEY CLUSTERED 
 (
 	[Hostname] ASC
 )WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON, OPTIMIZE_FOR_SEQUENTIAL_KEY = OFF) ON [PRIMARY]
 ) ON [PRIMARY] TEXTIMAGE_ON [PRIMARY]
 GO
-

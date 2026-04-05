@@ -3,20 +3,6 @@ function Heartbeat {
     $hostName = $m_hostName
     $timestamp = Get-Date -Format "yyyy-MM-dd HH:mm:ss"
 
-    $xml = New-Object System.Xml.XmlDocument
-
-    $root = $xml.CreateElement("Heartbeat")
-    $root.SetAttribute("version", "2.0")
-    $xml.AppendChild($root) | Out-Null
-
-    $hostnameElement = $xml.CreateElement("Hostname")
-    $hostnameElement.InnerText = $hostname
-    $root.AppendChild($hostnameElement) | Out-Null
-
-    $timestampElement = $xml.CreateElement("Timestamp")
-    $timestampElement.InnerText = $timestamp
-    $root.AppendChild($timestampElement) | Out-Null
-
     $os = Get-CimInstance Win32_OperatingSystem
     $cs = Get-CimInstance Win32_ComputerSystem
     $bios = Get-CimInstance Win32_BIOS
@@ -27,7 +13,23 @@ function Heartbeat {
     $firewallActiveProfile = (Get-NetFirewallSetting -PolicyStore ActiveStore).ActiveProfile
     $firewallProfileEnabled = (Get-NetFirewallProfile -Name $firewallActiveProfile).Enabled
 
-    $heartbeat = @{
+    $rebootRequired = $false
+
+    $checks = @(
+        "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Component Based Servicing\RebootPending",
+        "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\WindowsUpdate\Auto Update\RebootRequired"
+    )
+
+    foreach ($path in $checks) {
+        if (Test-Path $path) {
+            $rebootRequired = $true
+        }
+    }
+
+    $heartbeat = [ordered]@{
+        Hostname    = $hostname
+        Timestamp   = $timestamp
+
         IPAddresses                 = ([System.Net.Dns]::GetHostAddresses($hostname) |
             Where-Object { $_.AddressFamily -eq 'InterNetwork' } |
             Select-Object -ExpandProperty IPAddressToString) -join ", "
@@ -60,13 +62,12 @@ function Heartbeat {
         # PowerShell
         PSVersion                   = $PSVersionTable.PSVersion.ToString()
         PSEdition                   = $PSVersionTable.PSEdition
+
+        # Reboot Required
+        RebootRequired              = $rebootRequired
     }
 
-    foreach ($pair in $heartbeat.GetEnumerator()) {
-        $heartbeatElement = $xml.CreateElement($pair.Key)
-        $heartbeatElement.InnerText = $pair.Value
-        $root.AppendChild($heartbeatElement) | Out-Null
-    }
+    $json = $heartbeat | ConvertTo-Json -Depth 1
 
-    Check-Log -Component "Heartbeat" -XmlData $xml
+    Check-Log -Component "Heartbeat" -JsonData $json
 }

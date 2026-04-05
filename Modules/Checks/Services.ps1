@@ -3,55 +3,44 @@ function Check-Services {
         [hashtable]$config
     )
 
-    $hostName  = $m_hostName
+    $hostName = $m_hostName
     $timestamp = Get-Date -Format "yyyy-MM-dd HH:mm:ss"
-    $services  = $config.Checks.Services.ServicesToCheck
- 
-    $xml  = New-Object System.Xml.XmlDocument
-    $root = $xml.CreateElement("Metrics")
-    $xml.AppendChild($root) | Out-Null
- 
-    $hostnameElement = $xml.CreateElement("Hostname")
-    $hostnameElement.InnerText = $hostName
-    $root.AppendChild($hostnameElement) | Out-Null
- 
-    $timestampElement = $xml.CreateElement("Timestamp")
-    $timestampElement.InnerText = $timestamp
-    $root.AppendChild($timestampElement) | Out-Null
- 
-    $servicesNode = $xml.CreateElement("Services")
-    $servicesNode.SetAttribute("version", "2.0")
 
-    $servicesObj = Get-Service | Select Name, DisplayName, Status, StartType
+    $servicesMonitored = $config.Checks.Services.ServicesToCheck
  
-    foreach ($svc in $services) {
-        $serviceObj = $servicesObj | Where-Object Name -eq $svc
- 
-        $serviceNode = $xml.CreateElement("Service")
- 
-        if ($null -ne $serviceObj) {
-            $service = @{
-                Name           = $serviceObj.Name
-                DisplayName = $serviceObj.DisplayName
-                Status      = $serviceObj.Status
-                StartType   = $serviceObj.StartType
+    $serviceList = Get-CimInstance -ClassName Win32_Service | Select-Object Name, DisplayName, State, StartMode, DelayedAutoStart, StartName, PathName, ServiceType
+
+    $services = foreach ($service in $serviceList) {
+        try {
+            $service = [ordered]@{
+                Name                = $service.Name
+                DisplayName         = $service.DisplayName
+                State               = $service.State
+                StartMode           = $service.StartMode
+                DelayedAutoStart    = $service.DelayedAutoStart
+                StartName           = $service.StartName
+                PathName            = $service.PathName
+                ServiceType         = $service.ServiceType
             }
-        } else {
+
+            if (($servicesMonitored -split '[,;]') -contains $service.Name) {
+                $service['Monitored'] = $true
+            }
+
+            $service
+        }
+        catch {
             continue
         }
- 
-        foreach ($pair in $service.GetEnumerator()) {
-            $element = $xml.CreateElement($pair.Key)
-            $element.InnerText = $pair.Value
-            $serviceNode.AppendChild($element) | Out-Null
-        }
- 
-        $servicesNode.AppendChild($serviceNode) | Out-Null
     }
  
-    $root.AppendChild($servicesNode) | Out-Null
- 
-    if ($servicesNode.ChildNodes.Count -ne 0) {
-        Check-Log -Component "Services" -XmlData $xml
+    $payload = [ordered]@{
+        Hostname  = $hostName
+        Timestamp = $timestamp
+        Services = @($services)
     }
+
+    $json = $payload | ConvertTo-Json -Depth 2
+
+    Check-Log -Component "Services" -JsonData $json
 }

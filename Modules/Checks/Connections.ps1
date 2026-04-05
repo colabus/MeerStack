@@ -4,46 +4,34 @@ function Check-Connections {
     $hostname = $m_hostName
     $timestamp = Get-Date -Format "yyyy-MM-dd HH:mm:ss"
 
-    $xml = New-Object System.Xml.XmlDocument
-    $root = $xml.CreateElement("Metrics")
-    $xml.AppendChild($root) | Out-Null
+    $Connections = netstat -ano 2>$null | Select-Object -Skip 4 | ForEach-Object {
+        $parts = $_ -split "\s+" | Where-Object { $_ -ne "" }
 
-    $hostnameElement = $xml.CreateElement("Hostname")
-    $hostnameElement.InnerText = $hostname
-    $root.AppendChild($hostnameElement) | Out-Null
-
-    $timestampElement = $xml.CreateElement("Timestamp")
-    $timestampElement.InnerText = $timestamp
-    $root.AppendChild($timestampElement) | Out-Null
-
-    $ConnectionsNode = $xml.CreateElement("Connections")
-    $ConnectionsNode.SetAttribute("version", "2.0")
-
-    $Connections = netstat -ano 2>$null | Select-Object -Skip 4
-
-    foreach ($line in $Connections) {
-        $parts = $line -split "\s+" | Where-Object { $_ -ne "" }
-
-        $ConnectionNode = $xml.CreateElement("Connection")
-
-        $Connection = @{
-            Protocol        = $parts[0]
-            LocalAddress    = $parts[1]
-            RemoteAddress   = $parts[2]
-            State           = $parts[3]
-            PID             = $parts[4]
+        if ($parts[0] -eq "TCP") {
+            [ordered]@{
+                Protocol      = $parts[0]
+                LocalAddress  = $parts[1]
+                RemoteAddress = $parts[2]
+                State         = $parts[3]
+                PID           = $parts[4]
+            }
+        } elseif ($parts[0] -eq "UDP") {
+            [ordered]@{
+                Protocol      = $parts[0]
+                LocalAddress  = $parts[1]
+                RemoteAddress = $parts[2]
+                PID           = $parts[3]
+            }
         }
-
-        foreach ($pair in $Connection.GetEnumerator()) {
-            $ConnectionElement = $xml.CreateElement($pair.Key)
-            $ConnectionElement.InnerText = $pair.Value
-            $ConnectionNode.AppendChild($ConnectionElement) | Out-Null
-        }
-
-        $ConnectionsNode.AppendChild($ConnectionNode) | Out-Null
     }
 
-    $root.AppendChild($ConnectionsNode) | Out-Null
+    $payload = [ordered]@{
+        Hostname    = $hostName
+        Timestamp   = $timestamp
+        Connections = @($connections)
+    }
 
-    Check-Log -Component "Connections" -XmlData $xml
+    $json = $payload | ConvertTo-Json -Depth 2
+
+    Check-Log -Component "Connections" -JsonData $json
 }

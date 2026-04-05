@@ -2,8 +2,8 @@ CREATE TABLE [dbo].[CheckLog](
 	[Id] [bigint] IDENTITY(1,1) NOT NULL,
 	[Timestamp] [datetime] NOT NULL,
 	[Hostname] [varchar](50) NOT NULL,
-	[Filename] [varchar](50) NOT NULL,
-	[Payload] [xml] NOT NULL,
+	[Filename] [varchar](100) NOT NULL,
+	[Payload] [varchar](MAX) NOT NULL,
 	[Processed] [bit] NOT NULL,
 	[ProcessedDate] [datetime] NULL,
 	[Skipped] [bit] NULL,
@@ -19,4 +19,3 @@ GO
 
 ALTER TABLE [dbo].[CheckLog] ADD  CONSTRAINT [DF_CheckLog_Processed]  DEFAULT ((0)) FOR [Processed]
 GO
-

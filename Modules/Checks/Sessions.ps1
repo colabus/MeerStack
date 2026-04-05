@@ -4,22 +4,7 @@ function Check-Sessions {
     $hostname = $m_hostName
     $timestamp = Get-Date -Format "yyyy-MM-dd HH:mm:ss"
 
-    $xml = New-Object System.Xml.XmlDocument
-    $root = $xml.CreateElement("Metrics")
-    $xml.AppendChild($root) | Out-Null
-
-    $hostnameElement = $xml.CreateElement("Hostname")
-    $hostnameElement.InnerText = $hostname
-    $root.AppendChild($hostnameElement) | Out-Null
-
-    $timestampElement = $xml.CreateElement("Timestamp")
-    $timestampElement.InnerText = $timestamp
-    $root.AppendChild($timestampElement) | Out-Null
-
-    $sessionsNode = $xml.CreateElement("Sessions")
-    $sessionsNode.SetAttribute("version", "2.0")
-
-    $sessions = quser 2>$null | Select-Object -Skip 1
+    $sessionList = quser 2>$null | Select-Object -Skip 1
 
     $positions = @{
         UserName      = 1
@@ -30,13 +15,13 @@ function Check-Sessions {
         LogonTime     = 65
     }
 
-    foreach ($line in $sessions) {
-        $userName    = $line.Substring($positions['UserName'], 22).Trim()
-        $sessionName = $line.Substring($positions['SessionName'], 17).Trim()
-        $id          = $line.Substring($positions['Id'], 4).Trim()
-        $state       = $line.Substring($positions['State'], 8).Trim() -replace 'Disc', 'Disconnected'
+    $sessions = foreach ($session in $sessionList) {
+        $userName    = $session.Substring($positions['UserName'], 22).Trim()
+        $sessionName = $session.Substring($positions['SessionName'], 17).Trim()
+        $id          = $session.Substring($positions['Id'], 4).Trim()
+        $state       = $session.Substring($positions['State'], 8).Trim() -replace 'Disc', 'Disconnected'
 
-        $idleTime    = $line.Substring($positions['IdleTime'], 10).Trim()
+        $idleTime    = $session.Substring($positions['IdleTime'], 10).Trim()
 
         if ($idleTime -match '^(\d+)\+(\d{1,2}):(\d{2})$') {
             $days = [int]$matches[1]
@@ -58,29 +43,30 @@ function Check-Sessions {
 
         $idleTime = ($days * 1440) + ($hours * 60) + $minutes
 
-        $logonTime   = $line.Substring($positions['LogonTime']).Trim()
+        $logonTime   = $session.Substring($positions['LogonTime']).Trim()
 
-        $sessionNode = $xml.CreateElement("Session")
-
-        $session = @{
-            UserName     = $userName
-            SessionName  = $sessionName
-            ID           = $id
-            State        = $state
-            IdleTime     = $idleTime
-            LogonTime    = ([datetime]::Parse($logonTime)).ToString("yyyy-MM-dd HH:mm:ss.fff")
+        try {
+            [ordered]@{
+                UserName     = $userName
+                SessionName  = $sessionName
+                ID           = $id
+                State        = $state
+                IdleTime     = $idleTime
+                LogonTime    = ([datetime]::Parse($logonTime)).ToString("yyyy-MM-dd HH:mm:ss.fff")
+            }
         }
-
-        foreach ($pair in $session.GetEnumerator()) {
-            $sessionElement = $xml.CreateElement($pair.Key)
-            $sessionElement.InnerText = $pair.Value
-            $sessionNode.AppendChild($sessionElement) | Out-Null
+        catch {
+            continue
         }
-
-        $sessionsNode.AppendChild($sessionNode) | Out-Null
     }
 
-    $root.AppendChild($sessionsNode) | Out-Null
+    $payload = [ordered]@{
+        Hostname  = $hostName
+        Timestamp = $timestamp
+        Sessions = @($sessions)
+    }
 
-    Check-Log -Component "Sessions" -XmlData $xml
+    $json = $payload | ConvertTo-Json -Depth 2
+
+    Check-Log -Component "Sessions" -JsonData $json
 }

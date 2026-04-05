@@ -1,19 +1,5 @@
 CD $PSScriptRoot
 
-$connectionServer = "Nick-PC"
-
-. ".\MeerStackVariables.ps1"
-
-. ".\MeerStackMethods.ps1"
-
-MeerStack-Log -Status "INFO " -Message "[Main] MeerStack initialising - Purr! .."
-
-. ".\MeerStackConfig.ps1"
-
-. ".\MeerStackModules.ps1"
-
-$lastRun = @{}
-
 $logFile = Join-Path $config.LocalPath "MeerStack.log"
 $zipFile = Join-Path $config.LocalPath "MeerStack.zip"
 
@@ -33,7 +19,19 @@ if (Test-Path $logFile) {
     }
 }
 
-MeerStack-Log -Status "INFO " -Message "[Main] MeerStack Starting - Chirrup! .."
+$connectionServer = "Nick-PC"
+
+. ".\MeerStackVariables.ps1"
+
+. ".\MeerStackMethods.ps1"
+
+. ".\MeerStackConfig.ps1"
+
+. ".\MeerStackModules.ps1"
+
+$lastRun = @{}
+
+MeerStack-Log -Status "INFO" -Message "[Main] MeerStack Starting - Chirrup! .."
 
 while ($true) {
     $now = Get-Date
@@ -53,7 +51,7 @@ while ($true) {
     if (-not $last -or ($now - $last).TotalSeconds -ge $interval) {
 
         try {
-            MeerStack-Log -Status "INFO " -Message "[Main] Calling.. Heartbeat .."
+            MeerStack-Log -Status "INFO" -Message "[Main] Calling.. Heartbeat .."
 
             Heartbeat
             
@@ -79,7 +77,7 @@ while ($true) {
             
             if (Get-Command $functionName -ErrorAction SilentlyContinue) {
                 try {
-                    MeerStack-Log -Status "INFO " -Message "[Main] Calling.. $functionName .."
+                    MeerStack-Log -Status "INFO" -Message "[Main] Calling.. $functionName .."
 
                     & $functionName $config
                     $lastRun[$check] = $now
@@ -100,7 +98,7 @@ while ($true) {
 
     if (-not $last -or ($now - $last).TotalSeconds -ge $config.Configuration.Interval) {
         try {
-            MeerStack-Log -Status "INFO " -Message "[Main] Refreshing config .."
+            MeerStack-Log -Status "INFO" -Message "[Main] Refreshing config .."
 
             MeerStack-Configuration
 
@@ -110,7 +108,7 @@ while ($true) {
         }
     }
 
-    MeerStack-Log -Status "INFO " -Message "[Main] MeerStack is snoozing - Zzz .."
+    MeerStack-Log -Status "INFO" -Message "[Main] MeerStack is snoozing - Zzz .."
 
     Start-Sleep -Seconds (Get-Random -Minimum 60 -Maximum 120)
 }

@@ -16,68 +16,40 @@ function Check-EventLogs {
 
     $filterXml = $filterXml -f $lastTimeCreated
 
-    $xml = New-Object System.Xml.XmlDocument
-    $root = $xml.CreateElement("EventLogs")
-    $root.SetAttribute("version", "2.0")
-    $xml.AppendChild($root) | Out-Null
-
-    $hostnameElement = $xml.CreateElement("Hostname")
-    $hostnameElement.InnerText = $hostname
-    $root.AppendChild($hostnameElement) | Out-Null
-
-    $timestampElement = $xml.CreateElement("Timestamp")
-    $timestampElement.InnerText = $timestamp
-    $root.AppendChild($timestampElement) | Out-Null
-
-    $eventLogNode = $xml.CreateElement("EventLog")
-
     $events = Get-WinEvent -FilterXml $filterXml -ErrorAction SilentlyContinue
 
     if (-not $events) {
         MeerStack-Log -Status "INFO" -Message "[Check-EventLogs] No matching events found."
+
+        return
     }
-    else
-    {
-        foreach ($event in $events)
-        {
-            try {
-                $eventNode = $xml.CreateElement("Event")
 
-                $properties = @{
-                    LogName             = $event.LogName
-                    LevelDisplayName    = $event.LevelDisplayName
-                    TimeCreated         = $event.TimeCreated.ToString("yyyy-MM-dd HH:mm:ss.fffffff")
-                    ProviderName        = $event.ProviderName
-                    TaskDisplayName     = $event.TaskDisplayName
-                    Message             = $event.Message
-                    Id                  = $event.Id
-                    RecordID            = $event.RecordID
-                    MachineName         = $event.MachineName
-                }
-
-                foreach ($pair in $properties.GetEnumerator()) {
-                    $node = $xml.CreateElement($pair.Key)
-                    
-                    if ($pair.Key -eq "Message") {
-                        $cdata = $xml.CreateCDataSection($pair.Value)
-                        $node.AppendChild($cdata) | Out-Null
-                    }
-                    else {
-                        $node.InnerText = $pair.Value
-                    }
-
-                    $eventNode.AppendChild($node) | Out-Null
-                }
-
-                $eventLogNode.AppendChild($eventNode) | Out-Null
-            }
-             catch {
-                continue
+    $eventList = foreach ($event in $events) {
+        try {
+            [ordered]@{
+                LogName          = $event.LogName
+                LevelDisplayName = $event.LevelDisplayName
+                TimeCreated      = $event.TimeCreated.ToString("yyyy-MM-dd HH:mm:ss.fffffff")
+                ProviderName     = $event.ProviderName
+                TaskDisplayName  = $event.TaskDisplayName
+                Message          = $event.Message
+                Id               = $event.Id
+                RecordId         = $event.RecordId
+                MachineName      = $event.MachineName
             }
         }
-
-        $root.AppendChild($eventLogNode) | Out-Null
-
-        Check-Log -Component "EventLogs" -XmlData $xml
+        catch {
+            continue
+        }
     }
+
+    $payload = [ordered]@{
+        Hostname  = $hostName
+        Timestamp = $timestamp
+        EventLog  = @($eventList)
+    }
+
+    $json = $payload | ConvertTo-Json -Depth 2
+
+    Check-Log -Component "EventLogs" -JsonData $json
 }

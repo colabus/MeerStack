@@ -65,19 +65,28 @@ function MeerStack-Log {
 
 function Check-Log {
     param (
+        [Parameter(Mandatory = $true)]
         [string]$Component,
-        [xml]$XmlData
+        [xml]$XmlData,
+        [string]$JsonData
     )
 
-    $xmlString = $XmlData.OuterXml
-
-    $line = "$xmlString"
+    if ($PSBoundParameters.ContainsKey('JsonData')) {
+        $line = $JsonData
+        $extension = "json"
+    } elseif ($PSBoundParameters.ContainsKey('XmlData')) {
+        $line = $XmlData.OuterXml
+        $extension = "xml"
+    } else {
+        MeerStack-Log -Status "ERROR" -Message "[Check-Log] No data provided to Check-Log for component: $Component"
+        return
+    }
 
     $dateStamp = Get-Date -Format "yyyyMMddHHmmss"
 
     $localLogPath = $config.LocalPath + "\Logs"
 
-    $logFile = Join-Path $localLogPath "$Component-$dateStamp.log"
+    $logFile = Join-Path $localLogPath "$Component-$dateStamp.$extension"
 
     # Ensure the directory exists
     $logDir = Split-Path -Path $logFile -Parent
@@ -104,7 +113,7 @@ function Process-Logs {
 
     $hostName = $m_hostName
     $connString = $config.Database.ConnectionString
-    $logFiles = Get-ChildItem -Path $logPath -Filter *.log -File
+    $logFiles = Get-ChildItem -Path $logPath -Filter *.json -File
 
     if (-not $logFiles) { return }
 
@@ -116,36 +125,33 @@ function Process-Logs {
         foreach ($file in $logFiles) {
             MeerStack-Log -Status "INFO" -Message "[Process-Logs] Processing $($file.Name)..."
 
-            $payloads = @()
-
-            if ($file.Name -match '^EventLogs') {
-                # XML Payload
-                $payloads += Get-Content -Path $file.FullName -Raw
-            }
-            else {
-                # XML Payload per Line
-                $payloads += Get-Content -Path $file.FullName | Where-Object { -not [string]::IsNullOrWhiteSpace($_) }
-            }
+            $payload = (Get-Content -Path $file.FullName | Where-Object { -not [string]::IsNullOrWhiteSpace($_) }) -join "`n"
 
             $transaction = $sqlConn.BeginTransaction()
 
             try {
-                foreach ($payload in $payloads) {
-                    $sqlCmd = $sqlConn.CreateCommand()
-                    $sqlCmd.Transaction = $transaction
-                    $sqlCmd.CommandText = "usp_Check_Log_Insert"
-                    $sqlCmd.CommandType = [System.Data.CommandType]::StoredProcedure
+                $sqlCmd = $sqlConn.CreateCommand()
+                $sqlCmd.Transaction = $transaction
+                $sqlCmd.CommandText = "usp_CheckLog_Insert"
+                $sqlCmd.CommandType = [System.Data.CommandType]::StoredProcedure
 
-                    $sqlCmd.Parameters.Add("@Hostname", [System.Data.SqlDbType]::NVarChar, 50).Value = $hostName
-                    $sqlCmd.Parameters.Add("@Filename", [System.Data.SqlDbType]::NVarChar, 50).Value = $file.Name
-                    $sqlCmd.Parameters.Add("@Payload", [System.Data.SqlDbType]::Xml).Value = $payload
+                $sqlCmd.Parameters.Add("@Hostname", [System.Data.SqlDbType]::NVarChar, 50).Value = $hostName
+                $sqlCmd.Parameters.Add("@Filename", [System.Data.SqlDbType]::NVarChar, 100).Value = $file.Name
+                $sqlCmd.Parameters.Add("@Payload",  [System.Data.SqlDbType]::NVarChar, -1).Value = $payload
 
-                    try {
-                        $null = $sqlCmd.ExecuteNonQuery()
+                try {
+                    $null = $sqlCmd.ExecuteNonQuery()
+                }
+                catch [System.Data.SqlClient.SqlException] {
+                    if ($_.Exception.Number -eq 2812) {
+                        MeerStack-Log -Status "ERROR" -Message "[Process-Logs] Stored procedure 'usp_CheckLog_Insert' not found. Skipping $($file.Name)..."
+                    } else {
+                        MeerStack-Log -Status "ERROR" -Message "[Process-Logs] SQL error ($($_.Exception.Number)) on $($file.Name): $_"
                     }
-                    finally {
-                        $sqlCmd.Dispose()
-                    }
+                    throw
+                }
+                finally {
+                    $sqlCmd.Dispose()
                 }
 
                 $transaction.Commit()

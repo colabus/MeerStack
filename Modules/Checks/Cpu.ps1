@@ -6,31 +6,16 @@ function Check-CPU {
     $hostName = $m_hostName
     $timestamp = Get-Date -Format "yyyy-MM-dd HH:mm:ss"
 
-    $xml = New-Object System.Xml.XmlDocument
-
-    $root = $xml.CreateElement("Metrics")
-    $xml.AppendChild($root) | Out-Null
-
-    $hostnameElement = $xml.CreateElement("Hostname")
-    $hostnameElement.InnerText = $hostname
-    $root.AppendChild($hostnameElement) | Out-Null
-
-    $timestampElement = $xml.CreateElement("Timestamp")
-    $timestampElement.InnerText = $timestamp
-    $root.AppendChild($timestampElement) | Out-Null 
-
-    # CPU
-    $cpuNode = $xml.CreateElement("CPU")
-    $cpuNode.SetAttribute("version", "2.0")
-
     $cpuLoad = (Get-Counter '\Processor(_Total)\% Processor Time').CounterSamples.CookedValue
 
-    # CPU elements
-    $percentProcessorTimeNode = $xml.CreateElement("PercentProcessorTime")
-    $percentProcessorTimeNode.InnerText = $cpuLoad
-    $cpuNode.AppendChild($percentProcessorTimeNode) | Out-Null
+    $cpu = [ordered]@{
+        Hostname    = $hostname
+        Timestamp   = $timestamp
 
-    $root.AppendChild($cpuNode) | Out-Null
+        PercentProcessorTime = $cpuLoad
+    }
 
-    Check-Log -Component "CPU" -XmlData $xml
+    $json = $cpu | ConvertTo-Json -Depth 1
+
+    Check-Log -Component "CPU" -JsonData $json
 }

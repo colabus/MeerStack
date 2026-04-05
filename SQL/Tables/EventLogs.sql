@@ -3,7 +3,7 @@ CREATE TABLE [dbo].[EventLogs](
 	[Timestamp] [datetime] NULL,
 	[LogName] [varchar](100) NOT NULL,
 	[LevelDisplayName] [varchar](50) NULL,
-	[TimeCreated] [datetime] NOT NULL,
+	[TimeCreated] [datetime2](7) NOT NULL,
 	[ProviderName] [varchar](max) NULL,
 	[TaskDisplayName] [varchar](50) NULL,
 	[Message] [varchar](max) NULL,
@@ -19,4 +19,3 @@ CREATE TABLE [dbo].[EventLogs](
 )WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON, OPTIMIZE_FOR_SEQUENTIAL_KEY = OFF) ON [PRIMARY]
 ) ON [PRIMARY] TEXTIMAGE_ON [PRIMARY]
 GO
-

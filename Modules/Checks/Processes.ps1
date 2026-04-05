@@ -6,22 +6,6 @@ function Check-Processes {
     $hostName = $m_hostName
     $timestamp = Get-Date -Format "yyyy-MM-dd HH:mm:ss"
 
-    $xml = New-Object System.Xml.XmlDocument
-    $root = $xml.CreateElement("Metrics")
-    $xml.AppendChild($root) | Out-Null
-
-    $hostnameElement = $xml.CreateElement("Hostname")
-    $hostnameElement.InnerText = $hostname
-    $root.AppendChild($hostnameElement) | Out-Null
-
-    $timestampElement = $xml.CreateElement("Timestamp")
-    $timestampElement.InnerText = $timestamp
-    $root.AppendChild($timestampElement) | Out-Null
-
-    # Processes
-    $processesNode = $xml.CreateElement("Processes")
-    $processesNode.SetAttribute("version", "2.0")
-
     $processList = Get-CimInstance Win32_Process
 
     $shaCache = @{}
@@ -36,41 +20,39 @@ function Check-Processes {
             }
         }
 
-    foreach ($process in $processList) {
+    $processes = foreach ($process in $processList) {
+        $sha256 = if ($process.ExecutablePath -and $shaCache.ContainsKey($process.ExecutablePath)) {
+            $shaCache[$process.ExecutablePath]
+        } else {
+            $null
+        }
+
         try {
-            $procNode = $xml.CreateElement("Process")
-
-            $sha256 = if ($process.ExecutablePath -and $shaCache.ContainsKey($process.ExecutablePath)) {
-                $shaCache[$process.ExecutablePath]
-            } else {
-                $null
+            [ordered]@{
+                Name        = $process.Name
+                PID         = $process.ProcessId
+                ParentPid   = $process.ParentProcessId
+                Path        = $process.ExecutablePath
+                CommandLine = $process.CommandLine
+                StartTime   = if ($process.CreationDate) {
+                    $process.CreationDate.ToString("yyyy-MM-dd HH:mm:ss")
+                } else { $null }
+                SessionId   = $process.SessionId
+                SHA256      = $sha256
             }
-
-            $properties = @{
-                Name         = $process.Name
-                PID          = $process.ProcessId
-                ParentPid    = $process.ParentProcessId
-                Path         = $process.ExecutablePath
-                CommandLine  = $process.CommandLine
-                StartTime    = $process.CreationDate
-                SessionId    = $process.SessionId
-                SHA256       = $sha256
-            }
-
-            foreach ($pair in $properties.GetEnumerator()) {
-                $node = $xml.CreateElement($pair.Key)
-                $node.InnerText = $pair.Value
-                $procNode.AppendChild($node) | Out-Null
-            }
-
-            $processesNode.AppendChild($procNode) | Out-Null
         }
         catch {
             continue
         }
     }
 
-    $root.AppendChild($processesNode) | Out-Null
+    $payload = [ordered]@{
+        Hostname  = $hostName
+        Timestamp = $timestamp
+        Processes = @($processes)
+    }
 
-    Check-Log -Component "Processes" -XmlData $xml
+    $json = $payload | ConvertTo-Json -Depth 2
+
+    Check-Log -Component "Processes" -JsonData $json
 }
