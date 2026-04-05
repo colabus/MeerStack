@@ -113,6 +113,11 @@ function MeerStack-Configuration {
                 Enabled         = ((Get-ReaderValue -Reader $reader -Column "Connections" -Default $false) -eq $true)
                 Interval        = [int](Get-ReaderValue -Reader $reader -Column "ConnectionsInterval" -Default 300)
             }
+
+            $config.Checks["Software"] = @{
+                Enabled         = ((Get-ReaderValue -Reader $reader -Column "Software" -Default $false) -eq $true)
+                Interval        = [int](Get-ReaderValue -Reader $reader -Column "SoftwareInterval" -Default 300)
+            }
  
             $config.ScriptVersion = Get-ReaderValue -Reader $reader -Column "ScriptVersion" -Default $null
 

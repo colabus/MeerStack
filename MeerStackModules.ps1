@@ -14,3 +14,5 @@
 
 . ".\Modules\Checks\Processes.ps1"
 . ".\Modules\Checks\Connections.ps1"
+
+. ".\Modules\Checks\Software.ps1"

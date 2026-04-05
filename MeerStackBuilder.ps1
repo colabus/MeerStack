@@ -21,6 +21,8 @@ $orderedFiles = @(
     ".\Modules\Checks\Sessions.ps1",
     ".\Modules\Checks\Connections.ps1",
 
+    ".\Modules\Checks\Software.ps1",
+
     ".\MeerStackMain.ps1"
 )
 
