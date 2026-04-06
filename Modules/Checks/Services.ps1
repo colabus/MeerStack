@@ -15,8 +15,8 @@ function Check-Services {
             $service = [ordered]@{
                 Name                = $service.Name
                 DisplayName         = $service.DisplayName
-                State               = $service.State
-                StartMode           = $service.StartMode
+                Status              = $service.State -replace ' ',''
+                StartType           = $service.StartMode -replace 'Auto', 'Automatic'
                 DelayedAutoStart    = $service.DelayedAutoStart
                 StartName           = $service.StartName
                 PathName            = $service.PathName
