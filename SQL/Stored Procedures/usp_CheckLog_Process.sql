@@ -167,6 +167,12 @@ BEGIN
 
             UPDATE [MeerStack].[dbo].[CheckLog] SET Processed = 1, ProcessedDate = getdate() WHERE Id = @Id
         END
+        ELSE IF @Check = 'Software'
+        BEGIN
+            EXEC dbo.usp_Trend_Software_Insert @PayLoad
+
+            UPDATE [MeerStack].[dbo].[CheckLog] SET Processed = 1, ProcessedDate = getdate() WHERE Id = @Id
+        END
 
         END TRY
         BEGIN CATCH
