@@ -11,7 +11,7 @@ function Heartbeat {
     $uptime = (Get-Date) - $bootTime
 
     $firewallActiveProfile = (Get-NetFirewallSetting -PolicyStore ActiveStore).ActiveProfile
-    $firewallProfileEnabled = (Get-NetFirewallProfile -Name $firewallActiveProfile).Enabled
+    $firewallProfileEnabled = (Get-NetFirewallProfile -Name ($firewallActiveProfile  -split ',\s*')).Enabled -contains $true
 
     $rebootRequired = $false
 
@@ -51,7 +51,7 @@ function Heartbeat {
         BootTime                    = $($bootTime.ToString("yyyy-MM-dd HH:mm:ss"))
 
         # Firewall
-        FirewallActiveProfile       = $firewallActiveProfile
+        FirewallActiveProfile       = $firewallActiveProfile.ToString()
         FirewallProfileEnabled      = $firewallProfileEnabled
         
         # MeerStack
