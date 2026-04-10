@@ -1,5 +1,8 @@
 CD $PSScriptRoot
 
+$connectionServer = "Nick-PC"
+$scriptVersion = "20260405.1"
+
 $logFile = Join-Path $config.LocalPath "MeerStack.log"
 $zipFile = Join-Path $config.LocalPath "MeerStack.zip"
 

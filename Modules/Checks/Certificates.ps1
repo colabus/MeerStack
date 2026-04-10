@@ -22,7 +22,7 @@ function Check-Certificates {
         }
  
         try {
-            [ordered]@{
+            $certificate = [ordered]@{
                 DnsNameList     = $certificate.DnsNameList
                 Issuer          = $certificate.Issuer
                 NotBefore       = $certificate.NotBefore.ToString("yyyy-MM-dd HH:mm:ss")
@@ -31,9 +31,14 @@ function Check-Certificates {
                 SerialNumber    = $certificate.SerialNumber
                 Subject         = $certificate.Subject
                 Thumbprint      = $certificate.Thumbprint
-                Template        = $template
                 Version         = $certificate.Version
             }
+
+            if ($null -ne $template) {
+                $certificate['Template'] = $template
+            }
+
+            $certificate
         }
         catch {
             continue

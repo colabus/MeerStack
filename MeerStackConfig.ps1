@@ -83,40 +83,45 @@ function MeerStack-Configuration {
 
             $config.Checks["Disks"] = @{
                 Enabled         = ((Get-ReaderValue -Reader $reader -Column "Disks" -Default $false) -eq $true)
-                Interval        = [int](Get-ReaderValue -Reader $reader -Column "DisksInterval" -Default 14400)
+                Interval        = [int](Get-ReaderValue -Reader $reader -Column "DisksInterval" -Default 14400)                 #  4-hours
             }
  
             $config.Checks["Certificates"] = @{
                 Enabled         = ((Get-ReaderValue -Reader $reader -Column "Certificates" -Default $false) -eq $true)
-                Interval        = [int](Get-ReaderValue -Reader $reader -Column "CertificatesInterval" -Default 84600)
+                Interval        = [int](Get-ReaderValue -Reader $reader -Column "CertificatesInterval" -Default 84600)          # 24-hours
             }
  
             $eventLogsLastUpdated = Get-ReaderValue -Reader $reader -Column "EventLogsLastUpdated" -Default $null
             $config.Checks["EventLogs"] = @{
                 Enabled         = ((Get-ReaderValue -Reader $reader -Column "EventLogs" -Default $false) -eq $true)
-                Interval        = [int](Get-ReaderValue -Reader $reader -Column "EventLogsInterval" -Default 600)
+                Interval        = [int](Get-ReaderValue -Reader $reader -Column "EventLogsInterval" -Default 600)               # 10-minutes
                 XmlFilter       = [string](Get-ReaderValue -Reader $reader -Column "EventLogsXmlFilter"   -Default "")
                 LastUpdated     = if ($null -ne $eventLogsLastUpdated) { [DateTime]$eventLogsLastUpdated } else { (Get-Date) }
             }
  
             $config.Checks["Sessions"] = @{
                 Enabled         = ((Get-ReaderValue -Reader $reader -Column "Sessions" -Default $false) -eq $true)
-                Interval        = [int](Get-ReaderValue -Reader $reader -Column "SessionsInterval" -Default 300)
+                Interval        = [int](Get-ReaderValue -Reader $reader -Column "SessionsInterval" -Default 300)                #  5-minutes
             }
  
             $config.Checks["Processes"] = @{
                 Enabled         = ((Get-ReaderValue -Reader $reader -Column "Processes" -Default $false) -eq $true)
-                Interval        = [int](Get-ReaderValue -Reader $reader -Column "ProcessesInterval" -Default 300)
+                Interval        = [int](Get-ReaderValue -Reader $reader -Column "ProcessesInterval" -Default 300)               #  5-minutes
             }
  
             $config.Checks["Connections"] = @{
                 Enabled         = ((Get-ReaderValue -Reader $reader -Column "Connections" -Default $false) -eq $true)
-                Interval        = [int](Get-ReaderValue -Reader $reader -Column "ConnectionsInterval" -Default 300)
+                Interval        = [int](Get-ReaderValue -Reader $reader -Column "ConnectionsInterval" -Default 300)             #  5-minutes
             }
 
             $config.Checks["Software"] = @{
                 Enabled         = ((Get-ReaderValue -Reader $reader -Column "Software" -Default $false) -eq $true)
-                Interval        = [int](Get-ReaderValue -Reader $reader -Column "SoftwareInterval" -Default 300)
+                Interval        = [int](Get-ReaderValue -Reader $reader -Column "SoftwareInterval" -Default 84600)              # 24-hours
+            }
+
+            $config.Checks["Shares"] = @{
+                Enabled         = ((Get-ReaderValue -Reader $reader -Column "Shares" -Default $false) -eq $true)
+                Interval        = [int](Get-ReaderValue -Reader $reader -Column "SharesInterval" -Default 3600)                 # 60-minutes
             }
  
             $config.ScriptVersion = Get-ReaderValue -Reader $reader -Column "ScriptVersion" -Default $null

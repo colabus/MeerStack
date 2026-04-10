@@ -22,6 +22,7 @@ $orderedFiles = @(
     ".\Modules\Checks\Connections.ps1",
 
     ".\Modules\Checks\Software.ps1",
+    ".\Modules\Checks\Shares.ps1",
 
     ".\MeerStackMain.ps1"
 )
