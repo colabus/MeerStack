@@ -31,7 +31,7 @@ function Check-Shares {
             if ($share.Name -ne "IPC$") {
                 try {
                     $shareAccess = Get-SmbShareAccess -Name $share.Name -ErrorAction Stop | ForEach-Object {
-                        [PSCustomObject][ordered]@{
+                        [ordered]@{
                             AccountName        = $_.AccountName
                             AccessRight        = $_.AccessRight.ToString()
                             AccessControlType  = $_.AccessControlType.ToString()
@@ -43,7 +43,7 @@ function Check-Shares {
                 }
             }
 
-            [PSCustomObject][ordered]@{
+            [ordered]@{
                 Name            = $share.Name
                 Path            = $share.Path
                 Description     = $share.Description
