@@ -123,6 +123,11 @@ function MeerStack-Configuration {
                 Enabled         = ((Get-ReaderValue -Reader $reader -Column "Shares" -Default $false) -eq $true)
                 Interval        = [int](Get-ReaderValue -Reader $reader -Column "SharesInterval" -Default 3600)                 # 60-minutes
             }
+
+            $config.Checks["Tasks"] = @{
+                Enabled         = ((Get-ReaderValue -Reader $reader -Column "Tasks" -Default $false) -eq $true)
+                Interval        = [int](Get-ReaderValue -Reader $reader -Column "TasksInterval" -Default 84600)                 # 24-hours
+            }
  
             $config.ScriptVersion = Get-ReaderValue -Reader $reader -Column "ScriptVersion" -Default $null
 

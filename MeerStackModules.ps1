@@ -18,3 +18,4 @@
 . ".\Modules\Checks\Software.ps1"
 
 . ".\Modules\Checks\Shares.ps1"
+. ".\Modules\Checks\Tasks.ps1"
