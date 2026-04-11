@@ -1,3 +1,31 @@
+function Resolve-ExecutablePath {
+    param ([string]$fileName)
+
+    if ([System.IO.Path]::IsPathRooted($fileName) -and (Test-Path $fileName)) {
+        return @($fileName)
+    }
+
+    $searchDirectories = [System.Collections.Generic.List[string]]::new()
+
+    $searchDirectories.Add([System.Environment]::ExpandEnvironmentVariables("%SystemRoot%\System32"))
+    $searchDirectories.Add([System.Environment]::ExpandEnvironmentVariables("%SystemRoot%"))
+
+    $machinePath = [System.Environment]::GetEnvironmentVariable("PATH", [System.EnvironmentVariableTarget]::Machine)
+
+    foreach ($dir in ($machinePath -split ';' | Where-Object { $_ })) {
+        $searchDirectories.Add([System.Environment]::ExpandEnvironmentVariables($dir))
+    }
+
+    foreach ($dir in $searchDirectories) {
+        $full = Join-Path $dir $fileName
+        if (Test-Path $full -ErrorAction SilentlyContinue) {
+            return $full
+        }
+    }
+
+    return $fileName
+}
+
 function Check-Tasks {
     param (
         [hashtable]$config
@@ -10,12 +38,14 @@ function Check-Tasks {
         $task = $_
 
         $imagePaths = $task.Actions | Where-Object { $_.CimClass.CimClassName -eq "MSFT_TaskExecAction" -and $_.Execute } | ForEach-Object {
-            $exe = [System.Environment]::ExpandEnvironmentVariables($_.Execute.Trim('"'))
+            $execute = [System.Environment]::ExpandEnvironmentVariables($_.Execute.Trim('"'))
+            $imagePath = Resolve-ExecutablePath($execute)
 
             [PSCustomObject]@{
-                ImagePath    = $exe
-                Arguments    = $_.Arguments
-                LastModified = if (Test-Path $exe -ErrorAction SilentlyContinue) {
+                Execute         = $execute
+                ImagePath       = $imagePath
+                Arguments       = $_.Arguments
+                LastModified    = if (Test-Path $exe -ErrorAction SilentlyContinue) {
                     (Get-Item $exe -ErrorAction SilentlyContinue).LastWriteTime.ToString("yyyy-MM-dd HH:mm:ss")
                 } else {
                     $null
@@ -23,7 +53,7 @@ function Check-Tasks {
             }
         }
 
-        if (-not $imagePaths) { return }
+        if (-not $imagePaths -or $task.Author -match '^Microsoft.*') { return }
 
         $taskInfo = $null
 
