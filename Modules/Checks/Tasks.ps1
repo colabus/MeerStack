@@ -9,7 +9,7 @@ function Resolve-ExecutablePath {
     $pathExtensions = if ($hasExtension) {
         @('')
     } else {
-        ($env:PATHEXT -split ';' | Where-Object { $_ })
+        ([System.Environment]::GetEnvironmentVariable("PATHEXT", [System.EnvironmentVariableTarget]::Machine) -split ';' | Where-Object { $_ })
     }
 
     $searchDirectories = [System.Collections.Generic.List[string]]::new()
