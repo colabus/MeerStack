@@ -24,13 +24,14 @@ $orderedFiles = @(
     ".\Modules\Checks\Software.ps1",
     ".\Modules\Checks\Shares.ps1",
     ".\Modules\Checks\Tasks.ps1",
+    ".\Modules\Checks\Identities.ps1",
 
     ".\MeerStackMain.ps1"
 )
 
 $header = @'
 $connectionServer = "Nick-PC"
-$scriptVersion = "20260411.2"
+$scriptVersion = "20260412.1"
 
 $debug = $false
 

@@ -4,22 +4,31 @@ function Resolve-ExecutablePath {
     if ([System.IO.Path]::IsPathRooted($fileName) -and (Test-Path $fileName)) {
         return @($fileName)
     }
+    
+    $hasExtension = [System.IO.Path]::HasExtension($fileName)
+    $pathExtensions = if ($hasExtension) {
+        @('')
+    } else {
+        ($env:PATHEXT -split ';' | Where-Object { $_ })
+    }
 
     $searchDirectories = [System.Collections.Generic.List[string]]::new()
 
     $searchDirectories.Add([System.Environment]::ExpandEnvironmentVariables("%SystemRoot%\System32"))
     $searchDirectories.Add([System.Environment]::ExpandEnvironmentVariables("%SystemRoot%"))
 
-    $machinePath = [System.Environment]::GetEnvironmentVariable("PATH", [System.EnvironmentVariableTarget]::Machine)
+    $machinePaths = [System.Environment]::GetEnvironmentVariable("PATH", [System.EnvironmentVariableTarget]::Machine)
 
-    foreach ($dir in ($machinePath -split ';' | Where-Object { $_ })) {
-        $searchDirectories.Add([System.Environment]::ExpandEnvironmentVariables($dir))
+    foreach ($directory in ($machinePaths -split ';' | Where-Object { $_ })) {
+        $searchDirectories.Add([System.Environment]::ExpandEnvironmentVariables($directory))
     }
 
-    foreach ($dir in $searchDirectories) {
-        $full = Join-Path $dir $fileName
-        if (Test-Path $full -ErrorAction SilentlyContinue) {
-            return $full
+    foreach ($directory in $searchDirectories) {
+        foreach ($pathExtention in $pathExtensions) {
+            $full = Join-Path $directory "$fileName$pathExtention"
+            if (Test-Path $full -ErrorAction SilentlyContinue) {
+                return $full
+            }
         }
     }
 
@@ -45,8 +54,8 @@ function Check-Tasks {
                 Execute         = $execute
                 ImagePath       = $imagePath
                 Arguments       = $_.Arguments
-                LastModified    = if (Test-Path $exe -ErrorAction SilentlyContinue) {
-                    (Get-Item $exe -ErrorAction SilentlyContinue).LastWriteTime.ToString("yyyy-MM-dd HH:mm:ss")
+                LastModified    = if (Test-Path $execute -ErrorAction SilentlyContinue) {
+                    (Get-Item $execute -ErrorAction SilentlyContinue).LastWriteTime.ToString("yyyy-MM-dd HH:mm:ss")
                 } else {
                     $null
                 }
