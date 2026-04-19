@@ -10,6 +10,10 @@ function Heartbeat {
     $bootTime = $os.LastBootUpTime
     $uptime = (Get-Date) - $bootTime
 
+    $resourceMemory = "{0:N2} MB" -f ((Get-Process -Id $PID).WorkingSet64 / 1MB)
+
+    $logFileSize = "{0:N2} MB" -f ((Get-Item -LiteralPath (Join-Path $config.LocalPath "MeerStack.log") -ErrorAction SilentlyContinue).Length / 1MB)
+
     $firewallActiveProfile = (Get-NetFirewallSetting -PolicyStore ActiveStore).ActiveProfile
     $firewallProfileEnabled = (Get-NetFirewallProfile -Name ($firewallActiveProfile  -split ',\s*')).Enabled -contains $true
 
@@ -57,7 +61,10 @@ function Heartbeat {
         # MeerStack
         MeerStackScriptName         = $MyInvocation.ScriptName
         MeerStackScriptVersion      = $scriptVersion
+        MeerStackDatabaseVersion    = $databaseVersion
         MeerStackScriptStartTime    = $($m_scriptStartTime.ToString("yyyy-MM-dd HH:mm:ss"))
+
+        MeerStackLogFileSize        = $logFileSize
         
         # PowerShell
         PSVersion                   = $PSVersionTable.PSVersion.ToString()
@@ -65,6 +72,9 @@ function Heartbeat {
 
         # Reboot Required
         RebootRequired              = $rebootRequired
+
+        # Resources
+        ResourceMemory              = $resourceMemory
     }
 
     $json = $heartbeat | ConvertTo-Json -Depth 1

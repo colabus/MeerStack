@@ -134,24 +134,17 @@ function MeerStack-Configuration {
                 Interval        = [int](Get-ReaderValue -Reader $reader -Column "IdentitiesInterval" -Default 84600)            # 24-hours
             }
  
-            $config.ScriptVersion = Get-ReaderValue -Reader $reader -Column "ScriptVersion" -Default $null
+            $config.DatabaseVersion = Get-ReaderValue -Reader $reader -Column "DatabaseVersion" -Default $null
 
             $config.MeerStackForceExit = Get-ReaderValue -Reader $reader -Column "MeerStackForceExit" -Default $null
 
             MeerStack-Log -Status "INFO " -Message "[Config] Loaded configuration for $hostname.."
 
-            if ($scriptVersion -ne $config.ScriptVersion)
+            if ($databaseVersion -ne $config.DatabaseVersion)
             {
-                MeerStack-Log -Status "ERROR" -Message "[Config] Script version mismatches database version.. Script: $scriptVersion, Database: $($config.ScriptVersion)"
+                MeerStack-Log -Status "ERROR" -Message "[Config] Script (Database) version $databaseVersion mismatches database version.. $($config.DatabaseVersion)"
 
-                if ($MyInvocation.ScriptName -like '*netlogon*')
-                {
-                    Exit 1
-                }
-                else
-                {
-                    MeerStack-Log -Status "ERROR" -Message "[Config] Script version mismatch.. continuing.."
-                }
+                Exit 1
             }
 
             if ($null -ne $config.MeerStackForceExit -and [DateTime]$config.MeerStackForceExit -gt (Get-Date))

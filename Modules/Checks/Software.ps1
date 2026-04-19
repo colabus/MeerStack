@@ -113,37 +113,31 @@ function Check-Software {
 
     $registryPath = 'HKLM:\SOFTWARE\Microsoft\Microsoft SQL Server'
 
-    $instances = if (-not (Test-Path $registryPath)) {
-        return
-    }
-    else {
-
+    $instances = if (Test-Path $registryPath) {
         $instances = (Get-ItemProperty $registryPath -ErrorAction SilentlyContinue).InstalledInstances
 
-        if (-not $instances) {
-            return
-        }
+        if ($instances) {
+            foreach ($instance in $instances) {
+                $instanceNamesPath = "$registryPath\Instance Names\SQL"
 
-        foreach ($instance in $instances) {
-            $instanceNamesPath = "$registryPath\Instance Names\SQL"
+                $internalName = (Get-ItemProperty $instanceNamesPath -ErrorAction SilentlyContinue).$instance
 
-            $internalName = (Get-ItemProperty $instanceNamesPath -ErrorAction SilentlyContinue).$instance
+                if ($internalName) {
+                    $setupPath = "$registryPath\$internalName\Setup"
+                    $setup = Get-ItemProperty $setupPath -ErrorAction SilentlyContinue
 
-            if ($internalName) {
-                $setupPath = "$registryPath\$internalName\Setup"
-                $setup = Get-ItemProperty $setupPath -ErrorAction SilentlyContinue
-
-                try {
-                    [ordered]@{
-                        InstanceName = $instance
-                        Edition      = $setup.Edition
-                        Version      = $setup.Version
-                        PatchLevel   = $setup.PatchLevel
-                        SQLBinRoot   = $setup.SQLBinRoot
+                    try {
+                        [ordered]@{
+                            InstanceName = $instance
+                            Edition      = $setup.Edition
+                            Version      = $setup.Version
+                            PatchLevel   = $setup.PatchLevel
+                            SQLBinRoot   = $setup.SQLBinRoot
+                        }
                     }
-                }
-                catch {
-                    continue
+                    catch {
+                        continue
+                    }
                 }
             }
         }

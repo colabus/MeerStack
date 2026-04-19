@@ -31,7 +31,8 @@ $orderedFiles = @(
 
 $header = @'
 $connectionServer = "Nick-PC"
-$scriptVersion = "20260412.1"
+$scriptVersion = "20260419.1"
+$databaseVersion = "20260412.1"
 
 $debug = $false
 
@@ -100,6 +101,7 @@ foreach ($file in $orderedFiles) {
         -replace '[ \t]{2,}', ' ' `
         -replace '^\s*\$connectionServer.*', '' `
         -replace '^\s*\$scriptVersion.*', '' `
+        -replace '^\s*\$databaseVersion.*', '' `
         -join "`n"
 
     $minified = $minified -replace '(\n){2,}', "`n"
