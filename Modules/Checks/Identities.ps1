@@ -30,7 +30,7 @@ function Check-Identities {
         $groupDescription = $_.Description
 
         $members = try {
-            Get-LocalGroupMember -Group $groupName | ForEach-Object {
+            Get-LocalGroupMember -Group $groupName | Where-Object { $_.Name } | ForEach-Object {
                 [ordered]@{
                     Name        = $_.Name
                     ObjectClass = $_.ObjectClass
