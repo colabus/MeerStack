@@ -1,3 +1,5 @@
+$script:processHashCache = @{}
+
 function Check-Processes {
     param (
         [hashtable]$config
@@ -8,21 +10,27 @@ function Check-Processes {
 
     $processList = Get-CimInstance Win32_Process
 
-    $shaCache = @{}
-    $processList |
-        Where-Object { $_.ExecutablePath -and (Test-Path $_.ExecutablePath) } |
-        Select-Object -ExpandProperty ExecutablePath -Unique |
-        ForEach-Object {
+    foreach ($path in ($processList | Where-Object { $_.ExecutablePath -and (Test-Path $_.ExecutablePath) } | Select-Object -ExpandProperty ExecutablePath -Unique)) {
+        $cached    = $script:processHashCache[$path]
+        $newestStart = ($processList | Where-Object { $_.ExecutablePath -eq $path } | Measure-Object -Property CreationDate -Maximum).Maximum
+
+        $needsHash = -not $cached -or ($newestStart -and $newestStart -gt $cached.HashedAt)
+
+        if ($needsHash) {
             try {
-                $shaCache[$_] = (Get-FileHash -Algorithm SHA256 -Path $_ -ErrorAction Stop).Hash
+                $script:processHashCache[$path] = @{
+                    Hash     = (Get-FileHash -Algorithm SHA256 -Path $path -ErrorAction Stop).Hash
+                    HashedAt = (Get-Date)
+                }
             } catch {
-                $shaCache[$_] = $null
+                $script:processHashCache[$path] = @{ Hash = $null; HashedAt = (Get-Date) }
             }
         }
+    }
 
     $processes = foreach ($process in $processList) {
-        $sha256 = if ($process.ExecutablePath -and $shaCache.ContainsKey($process.ExecutablePath)) {
-            $shaCache[$process.ExecutablePath]
+        $sha256 = if ($process.ExecutablePath -and $script:processHashCache.ContainsKey($process.ExecutablePath)) {
+            $script:processHashCache[$process.ExecutablePath].Hash
         } else {
             $null
         }

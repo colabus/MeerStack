@@ -4,31 +4,35 @@ function Check-Connections {
     $hostname = $m_hostName
     $timestamp = Get-Date -Format "yyyy-MM-dd HH:mm:ss"
 
-    $Connections = netstat -ano 2>$null | Select-Object -Skip 4 | ForEach-Object {
-        $parts = $_ -split "\s+" | Where-Object { $_ -ne "" }
+    function Format-Endpoint ([string]$Address, [int]$Port) {
+        if ($Address -match ':') { "[$Address]:$Port" } else { "${Address}:${Port}" }
+    }
 
-        if ($parts[0] -eq "TCP") {
-            [ordered]@{
-                Protocol      = $parts[0]
-                LocalAddress  = $parts[1]
-                RemoteAddress = $parts[2]
-                State         = $parts[3]
-                PID           = $parts[4]
-            }
-        } elseif ($parts[0] -eq "UDP") {
-            [ordered]@{
-                Protocol      = $parts[0]
-                LocalAddress  = $parts[1]
-                RemoteAddress = $parts[2]
-                PID           = $parts[3]
-            }
+    $tcpConnections = Get-NetTCPConnection -ErrorAction SilentlyContinue | ForEach-Object {
+        [ordered]@{
+            Protocol      = "TCP"
+            LocalAddress  = Format-Endpoint $_.LocalAddress $_.LocalPort
+            RemoteAddress = Format-Endpoint $_.RemoteAddress $_.RemotePort
+            State         = $_.State.ToString()
+            PID           = $_.OwningProcess
+            CreationTime  = ($_.CreationTime).ToString("yyyy-MM-dd HH:mm:ss")
+        }
+    }
+
+    $udpEndpoints = Get-NetUDPEndpoint -ErrorAction SilentlyContinue | ForEach-Object {
+        [ordered]@{
+            Protocol      = "UDP"
+            LocalAddress  = Format-Endpoint $_.LocalAddress $_.LocalPort
+            RemoteAddress = "*:*"
+            PID           = $_.OwningProcess
+            CreationTime  = ($_.CreationTime).ToString("yyyy-MM-dd HH:mm:ss")
         }
     }
 
     $payload = [ordered]@{
-        Hostname    = $hostName
+        Hostname    = $hostname
         Timestamp   = $timestamp
-        Connections = @($connections)
+        Connections = @($tcpConnections) + @($udpEndpoints)
     }
 
     $json = $payload | ConvertTo-Json -Depth 2

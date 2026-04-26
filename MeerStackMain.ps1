@@ -1,7 +1,7 @@
 CD $PSScriptRoot
 
-$connectionServer = "Nick-PC"
-$scriptVersion = "20260419.1"
+$connectionServer = [System.Environment]::MachineName
+$scriptVersion = "20260426.1"
 $databaseVersion = "20260412.1"
 
 $logFile = Join-Path $config.LocalPath "MeerStack.log"
@@ -23,7 +23,7 @@ if (Test-Path $logFile) {
     }
 }
 
-$connectionServer = "Nick-PC"
+$connectionServer = [System.Environment]::MachineName
 
 . ".\MeerStackVariables.ps1"
 

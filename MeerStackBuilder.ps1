@@ -30,8 +30,8 @@ $orderedFiles = @(
 )
 
 $header = @'
-$connectionServer = "Nick-PC"
-$scriptVersion = "20260419.1"
+$connectionServer = [System.Environment]::MachineName
+$scriptVersion = "20260426.1"
 $databaseVersion = "20260412.1"
 
 $debug = $false
