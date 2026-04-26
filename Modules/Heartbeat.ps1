@@ -39,6 +39,12 @@ function Heartbeat {
             Select-Object -ExpandProperty IPAddressToString) -join ", "
         OS                          = "$($os.Caption) $($os.OSArchitecture)"
         CurrentTimeZone             = $($os.CurrentTimeZone)
+        BIOS                        = @{
+            Name                    = $($bios.Name)
+            Version                 = $($bios.Version)
+            Manufacturer            = $($bios.Manufacturer)
+            ReleaseDate             = $($bios.ReleaseDate.ToString("yyyy-MM-dd HH:mm:ss"))
+        }
         Domain                      = $($cs.Domain)
         LogonServer                 = $(try {
             if ((Get-CimInstance Win32_ComputerSystem).PartOfDomain) {
@@ -77,7 +83,7 @@ function Heartbeat {
         ResourceMemory              = $resourceMemory
     }
 
-    $json = $heartbeat | ConvertTo-Json -Depth 1
+    $json = $heartbeat | ConvertTo-Json -Depth 2
 
     Check-Log -Component "Heartbeat" -JsonData $json
 }
