@@ -1,3 +1,6 @@
+USE [MeerStack]
+GO
+
 CREATE PROCEDURE [dbo].[usp_Heartbeat_Upsert]
 
 	@PayLoad nvarchar(MAX)
@@ -19,12 +22,15 @@ BEGIN
             @BootTime datetime,
 			@MeerStackScriptName varchar(MAX),
 			@MeerStackScriptVersion varchar(50),
+			@MeerStackDatabaseVersion varchar(50),
 			@MeerStackScriptStartTime datetime,
+			@MeerStackLogFileSize varchar(50),
 			@FirewallProfileEnabled bit,
 			@FirewallActiveProfile varchar(50),
 			@PSVersion varchar(50),
 			@PSEdition varchar(50),
-            @RebootRequired bit
+            @RebootRequired bit,
+			@ResourceMemory varchar(50)
 
     SELECT
         @Hostname                   = JSON_VALUE(@Payload, '$.Hostname'),
@@ -40,36 +46,42 @@ BEGIN
         @BootTime                   = JSON_VALUE(@Payload, '$.BootTime'),
         @MeerStackScriptName        = JSON_VALUE(@Payload, '$.MeerStackScriptName'),
         @MeerStackScriptVersion     = JSON_VALUE(@Payload, '$.MeerStackScriptVersion'),
+		@MeerStackDatabaseVersion   = JSON_VALUE(@Payload, '$.MeerStackDatabaseVersion'),
         @MeerStackScriptStartTime   = JSON_VALUE(@Payload, '$.MeerStackScriptStartTime'),
+		@MeerStackLogFileSize		= JSON_VALUE(@PayLoad, '$.MeerStackLogFileSize'),
         @FirewallProfileEnabled     = JSON_VALUE(@Payload, '$.FirewallProfileEnabled'),
         @FirewallActiveProfile      = JSON_VALUE(@Payload, '$.FirewallActiveProfile'),
         @PSVersion                  = JSON_VALUE(@Payload, '$.PSVersion'),
         @PSEdition                  = JSON_VALUE(@Payload, '$.PSEdition'),
-        @RebootRequired             = JSON_VALUE(@Payload, '$.RebootRequired')
+        @RebootRequired             = JSON_VALUE(@Payload, '$.RebootRequired'),
+		@ResourceMemory				= JSON_VALUE(@Payload, '$.ResourceMemory')
 
     SET NOCOUNT OFF
 
     IF EXISTS (SELECT 1 FROM dbo.Heartbeats WHERE Hostname = @Hostname)
     BEGIN
         UPDATE dbo.Heartbeats SET
-            Timestamp = @Timestamp,
-            IPAddresses = @IPAddresses,
-            OS = @OS,
-			CurrentTimeZone = @CurrentTimeZone,
-            Domain = @Domain,
-			LogonServer = @LogonServer,
-            TotalMemoryGB = @TotalMemoryGB,
-            CPU = @CPU,
-            NumberOfLogicalProcessors = @NumberOfLogicalProcessors,
-            BootTime = @BootTime,
-			MeerStackScriptName = @MeerStackScriptName,
-			MeerStackScriptVersion = @MeerStackScriptVersion,
-			MeerStackScriptStartTime = @MeerStackScriptStartTime,
-			FirewallProfileEnabled = @FirewallProfileEnabled,
-			FirewallActiveProfile = @FirewallActiveProfile,
-			PSVersion = @PSVersion,
-			PSEdition = @PSEdition,
-            RebootRequired = @RebootRequired
+            Timestamp					= @Timestamp,
+            IPAddresses					= @IPAddresses,
+            OS							= @OS,
+			CurrentTimeZone				= @CurrentTimeZone,
+            Domain						= @Domain,
+			LogonServer					= @LogonServer,
+            TotalMemoryGB				= @TotalMemoryGB,
+            CPU							= @CPU,
+            NumberOfLogicalProcessors	= @NumberOfLogicalProcessors,
+            BootTime					= @BootTime,
+			MeerStackScriptName			= @MeerStackScriptName,
+			MeerStackScriptVersion		= @MeerStackScriptVersion,
+			MeerStackDatabaseVersion	= @MeerStackDatabaseVersion,
+			MeerStackScriptStartTime	= @MeerStackScriptStartTime,
+			MeerStackLogFileSize		= @MeerStackLogFileSize,
+			FirewallProfileEnabled		= @FirewallProfileEnabled,
+			FirewallActiveProfile		= @FirewallActiveProfile,
+			PSVersion					= @PSVersion,
+			PSEdition					= @PSEdition,
+            RebootRequired				= @RebootRequired,
+			ResourceMemory				= @ResourceMemory
         WHERE
             Hostname = @Hostname
     END
@@ -90,13 +102,16 @@ BEGIN
                 BootTime,
 				MeerStackScriptName,
 				MeerStackScriptVersion,
+				MeerStackDatabaseVersion,
 				MeerStackScriptStartTime,
+				MeerStackLogFileSize,
 				Alive,
 				FirewallProfileEnabled,
 				FirewallActiveProfile,
 				PSVersion,
 				PSEdition,
-                RebootRequired
+                RebootRequired,
+				ResourceMemory
             ) VALUES (
                 @Hostname,
                 @Timestamp,
@@ -111,15 +126,20 @@ BEGIN
                 @BootTime,
 				@MeerStackScriptName,
 				@MeerStackScriptVersion,
+				@MeerStackDatabaseVersion,
 				@MeerStackScriptStartTime,
+				@MeerStackLogFileSize,
 				1,
 				@FirewallProfileEnabled,
 				@FirewallActiveProfile,
 				@PSVersion,
 				@PSEdition,
-                @RebootRequired
+                @RebootRequired,
+				@ResourceMemory
             )
     END
 END
+
+
 
 GO

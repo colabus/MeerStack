@@ -1,3 +1,6 @@
+USE [MeerStack]
+GO
+
 CREATE PROCEDURE [dbo].[usp_CheckLog_Clear]
 
 AS

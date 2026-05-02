@@ -1,4 +1,7 @@
-CREATE PROCEDURE [dbo].[usp_Trend_Processes_Insert]
+USE [MeerStack]
+GO
+
+CREATE PROCEDURE [dbo].[usp_Snapshot_Processes_Insert]
 
     @PayLoad nvarchar(MAX)
 
@@ -13,11 +16,11 @@ BEGIN
         @Hostname  = JSON_VALUE(@Payload, '$.Hostname'),
         @Timestamp = JSON_VALUE(@Payload, '$.Timestamp')
 
-    DELETE FROM dbo.TrendProcesses WHERE Hostname = @Hostname
+    DELETE FROM dbo.Processes WHERE Hostname = @Hostname
 
     SET NOCOUNT OFF
 
-    INSERT INTO dbo.TrendProcesses (Hostname, Timestamp, Name, PID, ParentPid, Path, CommandLine, StartTime, SessionId, SHA256)
+    INSERT INTO dbo.Processes (Hostname, Timestamp, Name, PID, ParentPid, Path, CommandLine, StartTime, SessionId, SHA256)
         SELECT
             @Hostname,
             @Timestamp,

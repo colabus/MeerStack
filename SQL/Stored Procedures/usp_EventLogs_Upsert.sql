@@ -1,3 +1,6 @@
+USE [MeerStack]
+GO
+
 CREATE PROCEDURE [dbo].[usp_EventLogs_Upsert]
 
 	@Payload nvarchar(MAX)
@@ -49,6 +52,8 @@ BEGIN
                 JSON_VALUE(Event.value, '$.MachineName')        AS MachineName
             FROM
                 OPENJSON(@Payload, '$.EventLog') AS Event
+			WHERE
+				JSON_VALUE(Event.value, '$.LogName') IS NOT NULL
         ) PL
             LEFT JOIN
         dbo.EventLogs EL

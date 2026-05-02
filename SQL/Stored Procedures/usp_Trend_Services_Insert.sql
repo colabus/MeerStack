@@ -1,3 +1,6 @@
+USE [MeerStack]
+GO
+
 CREATE PROCEDURE [dbo].[usp_Trend_Services_Insert]
 
 	@Payload nvarchar(MAX)
@@ -10,8 +13,8 @@ BEGIN
             @Timestamp datetime,
             @Name varchar(100),
             @DisplayName varchar(100),
-            @State varchar(50),
-            @StartMode varchar(50),
+            @Status varchar(50),
+            @StartType varchar(50),
             @DelayedAutoStart bit,
             @StartName varchar(50),
             @PathName varchar(MAX),
@@ -28,8 +31,8 @@ BEGIN
     SELECT
         JSON_VALUE(Service.value, '$.Name'),
         JSON_VALUE(Service.value, '$.DisplayName'),
-        JSON_VALUE(Service.value, '$.State'),
-        JSON_VALUE(Service.value, '$.StartMode'),
+        JSON_VALUE(Service.value, '$.Status'),
+        JSON_VALUE(Service.value, '$.StartType'),
         JSON_VALUE(Service.value, '$.DelayedAutoStart'),
         JSON_VALUE(Service.value, '$.StartName'),
         JSON_VALUE(Service.value, '$.PathName'),
@@ -44,8 +47,8 @@ BEGIN
     FETCH NEXT FROM curServices INTO
         @Name,
         @DisplayName,
-        @State,
-        @StartMode,
+        @Status,
+        @StartType,
         @DelayedAutoStart,
         @StartName,
         @PathName,
@@ -63,8 +66,8 @@ BEGIN
                         Timestamp,
                         Name,
                         DisplayName,
-                        State,
-                        StartMode,
+                        Status,
+                        StartType,
                         DelayedAutoStart,
                         StartName,
                         PathName,
@@ -81,9 +84,9 @@ BEGIN
                         Timestamp DESC
                 ) TrendServices
             WHERE
-                State = @State
+                Status = @Status
                     AND
-                StartMode = @StartMode
+                StartType = @StartType
                     AND
                 DelayedAutoStart = @DelayedAutoStart
                     AND
@@ -100,8 +103,8 @@ BEGIN
                     Timestamp,
                     Name,
                     DisplayName,
-                    State,
-                    StartMode,
+                    Status,
+                    StartType,
                     DelayedAutoStart,
                     StartName,
                     PathName,
@@ -113,8 +116,8 @@ BEGIN
                     @Timestamp,
                     @Name,
                     @DisplayName,
-                    @State,
-                    @StartMode,
+                    @Status,
+                    @StartType,
                     @DelayedAutoStart,
                     @StartName,
                     @PathName,
@@ -125,8 +128,8 @@ BEGIN
         FETCH NEXT FROM curServices INTO
             @Name,
             @DisplayName,
-            @State,
-            @StartMode,
+            @Status,
+            @StartType,
             @DelayedAutoStart,
             @StartName,
             @PathName,
@@ -136,5 +139,4 @@ BEGIN
     CLOSE curServices
     DEALLOCATE curServices
 END
-
 GO

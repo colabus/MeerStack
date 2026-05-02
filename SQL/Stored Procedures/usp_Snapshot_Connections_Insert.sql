@@ -1,4 +1,7 @@
-CREATE PROCEDURE [dbo].[usp_Trend_Connections_Insert]
+USE [MeerStack]
+GO
+
+CREATE PROCEDURE [dbo].[usp_Snapshot_Connections_Insert]
 
     @Payload nvarchar(MAX)
 
@@ -13,12 +16,12 @@ BEGIN
         @Hostname  = JSON_VALUE(@Payload, '$.Hostname'),
         @Timestamp = JSON_VALUE(@Payload, '$.Timestamp')
 
-    DELETE FROM dbo.TrendConnections WHERE Hostname = @Hostname
+    DELETE FROM dbo.Connections WHERE Hostname = @Hostname
 
     SET NOCOUNT OFF
 
-    INSERT INTO dbo.TrendConnections (Hostname, Timestamp, Protocol, LocalAddress, RemoteAddress, State, PID)
-        SELECT
+    INSERT INTO dbo.Connections (Hostname, Timestamp, Protocol, LocalAddress, RemoteAddress, State, PID)
+        SELECT DISTINCT
             @Hostname,
             @Timestamp,
             JSON_VALUE(Connection.value, '$.Protocol'),

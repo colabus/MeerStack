@@ -1,3 +1,6 @@
+USE [MeerStack]
+GO
+
 CREATE PROCEDURE [dbo].[usp_Trend_Disks_Insert]
 
 	@Payload nvarchar(MAX)
@@ -144,5 +147,6 @@ BEGIN
     CLOSE curDisks
     DEALLOCATE curDisks
 END
+
 
 GO

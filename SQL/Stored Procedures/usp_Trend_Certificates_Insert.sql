@@ -1,3 +1,6 @@
+USE [MeerStack]
+GO
+
 CREATE PROCEDURE [dbo].[usp_Trend_Certificates_Insert]
 
 	@PayLoad nvarchar(MAX)
@@ -172,5 +175,6 @@ BEGIN
 		)
 
 END
+
 
 GO

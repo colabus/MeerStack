@@ -1,13 +1,21 @@
-CREATE PROCEDURE [dbo].[usp_HostConfiguration_Get] -- EXEC [usp_HostConfiguration_Get] 'Nick-PC'
+USE [MeerStack]
+GO
+
+CREATE PROCEDURE [dbo].[usp_HostConfiguration_Get] -- EXEC [usp_HostConfiguration_Get] '<Hostname>'
 
 	@Hostname varchar(50)
 
 AS
 BEGIN
 	DECLARE @ScriptVersion varchar(50),
+			@DatabaseVersion varchar(50),
 			@EventLogsLastUpdated datetime
 
-	SELECT @ScriptVersion = ScriptVersion FROM dbo.Version
+	SELECT
+		@ScriptVersion = ScriptVersion,
+		@DatabaseVersion = DatabaseVersion
+	FROM
+		dbo.Version
 
 	SELECT @EventLogsLastUpdated = ISNULL(EventLogsLastUpdated, DATEADD(hour, -1, getdate())) FROM dbo.Heartbeats WHERE Hostname = @Hostname
 
@@ -42,10 +50,19 @@ BEGIN
 		Connections,
 		ConnectionsInterval,
 
+		Software,
+		SoftwareInterval,
+		Shares,
+		SharesInterval,
+		Tasks,
+		TasksInterval,
+		Identities,
+		IdentitiesInterval,
+
 		-- Version
 		@ScriptVersion AS ScriptVersion,
-
-		CONVERT(datetime, NULL) AS MeerStackForceExit
+		@DatabaseVersion AS DatabaseVersion,
+		NULL AS MeerStackForceExit
 	FROM
 		dbo.HostConfiguration
 	WHERE

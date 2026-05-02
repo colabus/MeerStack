@@ -1,3 +1,6 @@
+USE [MeerStack]
+GO
+
 CREATE PROCEDURE [dbo].[usp_Metrics_Memory_Upsert]
 
 	@PayLoad nvarchar(MAX)
@@ -50,5 +53,4 @@ BEGIN
                 )
         END
 END
-
 GO

@@ -1,3 +1,6 @@
+USE [MeerStack]
+GO
+
 CREATE PROCEDURE [dbo].[usp_Metrics_CPU_Upsert]
 
 	@Payload nvarchar(MAX)
@@ -40,5 +43,4 @@ BEGIN
                 )
         END
 END
-
 GO

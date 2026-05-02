@@ -1,3 +1,6 @@
+USE [MeerStack]
+GO
+
 CREATE PROCEDURE [dbo].[usp_CheckLog_Process]
 
 AS
@@ -39,6 +42,21 @@ BEGIN
 			WHERE
 				MessageOrder <> 1
 		)
+
+	-- Skip blank payloads .. # temporary control
+
+	UPDATE
+		[MeerStack].[dbo].[CheckLog]
+	SET
+		Processed = 1,
+		ProcessedDate = getdate(),
+		Skipped = 1
+	FROM
+		[MeerStack].[dbo].[CheckLog]
+	WHERE
+		Processed = 0
+			AND
+		LEN(Payload) = 0
 
     DECLARE curCheckLog CURSOR FORWARD_ONLY STATIC FOR
 
@@ -151,25 +169,43 @@ BEGIN
         END
 		ELSE IF @Check = 'Sessions'
         BEGIN
-            EXEC dbo.usp_Trend_Sessions_Insert @PayLoad
+            EXEC dbo.usp_Snapshot_Sessions_Insert @PayLoad
 
             UPDATE [MeerStack].[dbo].[CheckLog] SET Processed = 1, ProcessedDate = getdate() WHERE Id = @Id
         END
         ELSE IF @Check = 'Processes'
         BEGIN
-            EXEC dbo.usp_Trend_Processes_Insert @PayLoad
+            EXEC dbo.usp_Snapshot_Processes_Insert @PayLoad
 
             UPDATE [MeerStack].[dbo].[CheckLog] SET Processed = 1, ProcessedDate = getdate() WHERE Id = @Id
         END
         ELSE IF @Check = 'Connections'
         BEGIN
-            EXEC dbo.usp_Trend_Connections_Insert @PayLoad
+            EXEC dbo.usp_Snapshot_Connections_Insert @PayLoad
 
             UPDATE [MeerStack].[dbo].[CheckLog] SET Processed = 1, ProcessedDate = getdate() WHERE Id = @Id
         END
         ELSE IF @Check = 'Software'
         BEGIN
-            EXEC dbo.usp_Trend_Software_Insert @PayLoad
+            EXEC dbo.usp_Snapshot_Software_Insert @PayLoad
+
+            UPDATE [MeerStack].[dbo].[CheckLog] SET Processed = 1, ProcessedDate = getdate() WHERE Id = @Id
+        END
+        ELSE IF @Check = 'Shares'
+        BEGIN
+            EXEC dbo.usp_Snapshot_Shares_Insert @PayLoad
+
+            UPDATE [MeerStack].[dbo].[CheckLog] SET Processed = 1, ProcessedDate = getdate() WHERE Id = @Id
+        END
+		ELSE IF @Check = 'Identities'
+        BEGIN
+            EXEC dbo.usp_Snapshot_Identities_Insert @PayLoad
+
+            UPDATE [MeerStack].[dbo].[CheckLog] SET Processed = 1, ProcessedDate = getdate() WHERE Id = @Id
+        END
+		ELSE IF @Check = 'Tasks'
+        BEGIN
+            EXEC dbo.usp_Snapshot_Tasks_Insert @PayLoad
 
             UPDATE [MeerStack].[dbo].[CheckLog] SET Processed = 1, ProcessedDate = getdate() WHERE Id = @Id
         END
