@@ -1,12 +1,12 @@
 USE [MeerStack]
 GO
 
-CREATE TABLE [dbo].[Version](
-	[ScriptVersion] [varchar](50) NOT NULL,
-	[DatabaseVersion] [varchar](50) NOT NULL,
- CONSTRAINT [PK_Version] PRIMARY KEY CLUSTERED 
+CREATE TABLE [dbo].[Services](
+	[ServiceName] [varchar](50) NOT NULL,
+	[Name] [varchar](50) NOT NULL,
+ CONSTRAINT [PK_Services] PRIMARY KEY CLUSTERED 
 (
-	[ScriptVersion] ASC
+	[ServiceName] ASC
 )WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON, OPTIMIZE_FOR_SEQUENTIAL_KEY = OFF) ON [PRIMARY]
 ) ON [PRIMARY]
 GO

@@ -1,11 +1,14 @@
-CREATE TABLE [dbo].[TrendConnections](
+USE [MeerStack]
+GO
+
+CREATE TABLE [dbo].[Connections](
 	[Hostname] [varchar](50) NOT NULL,
 	[Timestamp] [datetime] NOT NULL,
 	[Protocol] [varchar](10) NOT NULL,
 	[LocalAddress] [varchar](50) NOT NULL,
 	[RemoteAddress] [varchar](50) NULL,
 	[State] [varchar](50) NOT NULL,
-	[PID] [varchar](10) NULL,
+	[PID] [int] NULL,
  CONSTRAINT [PK_TrendConnections] PRIMARY KEY CLUSTERED 
 (
 	[Hostname] ASC,

@@ -1,6 +1,10 @@
+USE [MeerStack]
+GO
+
 CREATE TABLE [dbo].[Heartbeats](
 	[Hostname] [varchar](50) NOT NULL,
 	[Timestamp] [datetime] NULL,
+	[Server] [varchar](50) NULL,
 	[IPAddresses] [varchar](100) NULL,
 	[OS] [varchar](max) NULL,
 	[CurrentTimeZone] [int] NULL,
@@ -13,13 +17,16 @@ CREATE TABLE [dbo].[Heartbeats](
 	[EventLogsLastUpdated] [datetime] NULL,
 	[MeerStackScriptName] [varchar](max) NULL,
 	[MeerStackScriptVersion] [varchar](50) NULL,
+	[MeerStackDatabaseVersion] [varchar](50) NULL,
 	[MeerStackScriptStartTime] [datetime] NULL,
+	[MeerStackLogFileSize] [varchar](50) NULL,
 	[Alive] [bit] NULL,
 	[FirewallProfileEnabled] [bit] NULL,
 	[FirewallActiveProfile] [varchar](50) NULL,
 	[PSVersion] [varchar](50) NULL,
 	[PSEdition] [varchar](50) NULL,
 	[RebootRequired] [bit] NULL,
+	[ResourceMemory] [varchar](50) NULL,
  CONSTRAINT [PK_Heartbeats] PRIMARY KEY CLUSTERED 
 (
 	[Hostname] ASC

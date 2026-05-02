@@ -1,9 +1,12 @@
+USE [MeerStack]
+GO
+
 CREATE TABLE [dbo].[CheckLog](
 	[Id] [bigint] IDENTITY(1,1) NOT NULL,
 	[Timestamp] [datetime] NOT NULL,
 	[Hostname] [varchar](50) NOT NULL,
 	[Filename] [varchar](100) NOT NULL,
-	[Payload] [varchar](MAX) NOT NULL,
+	[Payload] [nvarchar](max) NOT NULL,
 	[Processed] [bit] NOT NULL,
 	[ProcessedDate] [datetime] NULL,
 	[Skipped] [bit] NULL,

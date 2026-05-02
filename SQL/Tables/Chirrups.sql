@@ -1,3 +1,6 @@
+USE [MeerStack]
+GO
+
 CREATE TABLE [dbo].[Chirrups](
 	[Id] [int] IDENTITY(1,1) NOT NULL,
 	[Alive] [bit] NOT NULL,

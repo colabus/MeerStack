@@ -1,18 +1,19 @@
-CREATE TABLE [dbo].[TrendSessions](
+USE [MeerStack]
+GO
+
+CREATE TABLE [dbo].[Software](
 	[Hostname] [varchar](50) NOT NULL,
 	[Timestamp] [datetime] NOT NULL,
-	[ID] [int] NOT NULL,
-	[SessionName] [varchar](50) NULL,
-	[LogonTime] [datetime] NULL,
-	[IdleTime] [int] NULL,
-	[UserName] [varchar](50) NULL,
-	[State] [varchar](50) NULL,
+	[DisplayName] [varchar](255) NOT NULL,
+	[DisplayVersion] [varchar](50) NULL,
+	[Publisher] [varchar](255) NULL,
+	[InstallDate] [varchar](50) NULL,
 	[Deleted] [bit] NULL,
- CONSTRAINT [PK_TrendSessions] PRIMARY KEY CLUSTERED 
+ CONSTRAINT [PK_TrendSoftware_1] PRIMARY KEY CLUSTERED 
 (
 	[Hostname] ASC,
 	[Timestamp] ASC,
-	[ID] ASC
+	[DisplayName] ASC
 )WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON, OPTIMIZE_FOR_SEQUENTIAL_KEY = OFF) ON [PRIMARY]
 ) ON [PRIMARY]
 GO

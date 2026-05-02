@@ -1,18 +1,12 @@
 USE [MeerStack]
 GO
 
-CREATE TABLE [dbo].[TrendServices](
+CREATE TABLE [dbo].[Groups](
 	[Hostname] [varchar](50) NOT NULL,
 	[Timestamp] [datetime] NOT NULL,
 	[Name] [varchar](100) NOT NULL,
-	[DisplayName] [varchar](100) NOT NULL,
-	[Status] [varchar](50) NOT NULL,
-	[StartType] [varchar](50) NOT NULL,
-	[DelayedAutoStart] [bit] NULL,
-	[StartName] [varchar](50) NULL,
-	[PathName] [varchar](max) NULL,
-	[ServiceType] [varchar](50) NULL,
- CONSTRAINT [PK_TrendServices] PRIMARY KEY CLUSTERED 
+	[Description] [varchar](max) NULL,
+ CONSTRAINT [PK_Groups] PRIMARY KEY CLUSTERED 
 (
 	[Hostname] ASC,
 	[Timestamp] ASC,

@@ -1,3 +1,6 @@
+USE [MeerStack]
+GO
+
 CREATE TABLE [dbo].[TrendDisks](
 	[Hostname] [varchar](50) NOT NULL,
 	[Timestamp] [datetime] NOT NULL,

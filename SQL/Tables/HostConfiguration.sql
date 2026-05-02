@@ -1,3 +1,6 @@
+USE [MeerStack]
+GO
+
 CREATE TABLE [dbo].[HostConfiguration](
 	[Id] [bigint] IDENTITY(1,1) NOT NULL,
 	[Hostname] [varchar](50) NOT NULL,
@@ -26,6 +29,14 @@ CREATE TABLE [dbo].[HostConfiguration](
 	[ProcessesInterval] [int] NOT NULL,
 	[Connections] [bit] NOT NULL,
 	[ConnectionsInterval] [int] NOT NULL,
+	[Software] [bit] NULL,
+	[SoftwareInterval] [int] NULL,
+	[Shares] [bit] NULL,
+	[SharesInterval] [int] NULL,
+	[Tasks] [bit] NULL,
+	[TasksInterval] [int] NULL,
+	[Identities] [bit] NULL,
+	[IdentitiesInterval] [int] NULL,
 	[NotificationRecipients] [varchar](max) NULL,
  CONSTRAINT [PK_HostConfiguration] PRIMARY KEY CLUSTERED 
 (

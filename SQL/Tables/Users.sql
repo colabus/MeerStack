@@ -1,18 +1,19 @@
 USE [MeerStack]
 GO
 
-CREATE TABLE [dbo].[TrendServices](
+CREATE TABLE [dbo].[Users](
 	[Hostname] [varchar](50) NOT NULL,
 	[Timestamp] [datetime] NOT NULL,
 	[Name] [varchar](100) NOT NULL,
-	[DisplayName] [varchar](100) NOT NULL,
-	[Status] [varchar](50) NOT NULL,
-	[StartType] [varchar](50) NOT NULL,
-	[DelayedAutoStart] [bit] NULL,
-	[StartName] [varchar](50) NULL,
-	[PathName] [varchar](max) NULL,
-	[ServiceType] [varchar](50) NULL,
- CONSTRAINT [PK_TrendServices] PRIMARY KEY CLUSTERED 
+	[Enabled] [bit] NOT NULL,
+	[Description] [varchar](max) NULL,
+	[FullName] [varchar](50) NULL,
+	[LastLogon] [datetime] NULL,
+	[AccountExpires] [datetime] NULL,
+	[PasswordLastSet] [datetime] NULL,
+	[PasswordRequired] [bit] NOT NULL,
+	[UserMayChangePassword] [bit] NOT NULL,
+ CONSTRAINT [PK_Users] PRIMARY KEY CLUSTERED 
 (
 	[Hostname] ASC,
 	[Timestamp] ASC,
