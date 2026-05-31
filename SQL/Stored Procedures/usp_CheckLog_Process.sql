@@ -209,6 +209,12 @@ BEGIN
 
             UPDATE [MeerStack].[dbo].[CheckLog] SET Processed = 1, ProcessedDate = getdate() WHERE Id = @Id
         END
+        ELSE IF @Check = 'RegistryKeys'
+        BEGIN
+            EXEC dbo.usp_Trend_RegistryKeys_Insert @PayLoad
+
+            UPDATE [MeerStack].[dbo].[CheckLog] SET Processed = 1, ProcessedDate = getdate() WHERE Id = @Id
+        END
 
         END TRY
         BEGIN CATCH

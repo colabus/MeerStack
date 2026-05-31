@@ -1,3 +1,4 @@
+#region Supporting Functions
 function Get-DotNetInstallations {
     [CmdletBinding()]
     param()
@@ -66,6 +67,7 @@ function Get-DotNetInstallations {
 
     $results | Sort-Object Name -Unique
 }
+#endregion Supporting Functions
 
 function Check-Software {
     param ($config)

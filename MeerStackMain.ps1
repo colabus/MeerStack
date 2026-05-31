@@ -1,8 +1,8 @@
 CD $PSScriptRoot
 
 $connectionServer = [System.Environment]::MachineName
-$scriptVersion = "20260426.1"
-$databaseVersion = "20260412.1"
+$scriptVersion = "20260531.1"
+$databaseVersion = "20260405.1"
 
 $logFile = Join-Path $config.LocalPath "MeerStack.log"
 $zipFile = Join-Path $config.LocalPath "MeerStack.zip"

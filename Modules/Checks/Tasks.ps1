@@ -1,3 +1,4 @@
+#region Supporting Functions
 function Resolve-ExecutablePath {
     param ([string]$fileName)
 
@@ -34,6 +35,7 @@ function Resolve-ExecutablePath {
 
     return $fileName
 }
+#endregion Supporting Functions
 
 function Check-Tasks {
     param (

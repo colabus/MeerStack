@@ -26,13 +26,15 @@ $orderedFiles = @(
     ".\Modules\Checks\Tasks.ps1",
     ".\Modules\Checks\Identities.ps1",
 
+    ".\Modules\Checks\RegistryKeys.ps1",
+
     ".\MeerStackMain.ps1"
 )
 
 $header = @'
 $connectionServer = [System.Environment]::MachineName
-$scriptVersion = "20260426.1"
-$databaseVersion = "20260412.1"
+$scriptVersion = "20260531.1"
+$databaseVersion = "20260405.1"
 
 $debug = $false
 

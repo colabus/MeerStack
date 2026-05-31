@@ -20,3 +20,5 @@
 . ".\Modules\Checks\Shares.ps1"
 . ".\Modules\Checks\Tasks.ps1"
 . ".\Modules\Checks\Identities.ps1"
+
+. ".\Modules\Checks\RegistryKeys.ps1"

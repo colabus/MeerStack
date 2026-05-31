@@ -1,3 +1,4 @@
+#region Supporting Functions
 function Resolve-ShareType {
     param ([uint32]$Type)
 
@@ -15,6 +16,7 @@ function Resolve-ShareType {
 
     return "{0}{1}" -f $typeName, $(if ($isAdmin) { " (Admin)" } else { "" })
 }
+#endregion Supporting Functions
 
 function Check-Shares {
     param ($config)
