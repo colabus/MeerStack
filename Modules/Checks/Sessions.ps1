@@ -1,33 +1,48 @@
 function Check-Sessions {
     param ($config)
 
-    $hostname = $m_hostName
+    $hostname  = $m_hostName
     $timestamp = Get-Date -Format "yyyy-MM-dd HH:mm:ss"
 
     $quser = quser 2>$null
 
     $sessions = if ($quser -and $quser.Count -gt 1) {
-        $header     = $quser[0]
+        $headerIndex = ($quser | Select-String -Pattern '^\s*USERNAME\s+SESSIONNAME').LineNumber
 
+        if (-not $headerIndex) { return }
+
+        $headerIndex = $headerIndex - 1
+
+        $header     = $quser[$headerIndex]
         $colSession = $header.IndexOf('SESSIONNAME')
-        $colId      = $header.IndexOf('ID')
         $colState   = $header.IndexOf('STATE')
-        $colIdle    = $header.IndexOf('IDLE TIME')
-        $colLogon   = $header.IndexOf('LOGON TIME')
 
-        foreach ($line in ($quser | Select-Object -Skip 1)) {
-            $userName    = $line.Substring(1, $colSession - 1).Trim()
-            $sessionName = $line.Substring($colSession, $colId - $colSession).Trim()
-            $id          = $line.Substring($colId, $colState - $colId).Trim()
-            $state       = $line.Substring($colState, $colIdle - $colState).Trim() -replace 'Disc', 'Disconnected'
-            $idleStr     = $line.Substring($colIdle, $colLogon - $colIdle).Trim()
-            $logonStr    = $line.Substring($colLogon).Trim()
+        foreach ($line in ($quser | Select-Object -Skip ($headerIndex + 1))) {
 
-            if ($idleStr -match '^(\d+)\+(\d{1,2}):(\d{2})$') {
+            if ([string]::IsNullOrWhiteSpace($line)) { continue }
+
+            $userName = $line.Substring(1, $colSession - 1).Trim()
+
+            $middle      = $line.Substring($colSession, $colState - $colSession).Trim()
+            $middleParts = $middle -split '\s+'
+            $id          = $middleParts[-1]
+            $sessionName = if ($middleParts.Count -gt 1) { $middleParts[0] } else { '' }
+
+            if ($id -notmatch '^\d+$') { continue }
+
+            $tail = $line.Substring($colState).Trim()
+
+            if ($tail -notmatch '^(?<state>\S+)\s+(?<idle>\S+)\s+(?<logon>.+?)\s*$') { continue }
+
+            $state    = $matches['state'] -replace 'Disc', 'Disconnected'
+            $idle  = $matches['idle']
+            $logon = $matches['logon']
+
+            if ($idle -match '^(\d+)\+(\d{1,2}):(\d{2})$') {
                 $idleMinutes = [int]$matches[1] * 1440 + [int]$matches[2] * 60 + [int]$matches[3]
-            } elseif ($idleStr -match '^(\d{1,2}):(\d{2})$') {
+            } elseif ($idle -match '^(\d{1,2}):(\d{2})$') {
                 $idleMinutes = [int]$matches[1] * 60 + [int]$matches[2]
-            } elseif ($idleStr -match '^(\d+)$') {
+            } elseif ($idle -match '^(\d+)$') {
                 $idleMinutes = [int]$matches[1]
             } else {
                 $idleMinutes = 0
@@ -40,7 +55,7 @@ function Check-Sessions {
                     ID          = $id
                     State       = $state
                     IdleTime    = $idleMinutes
-                    LogonTime   = ([datetime]::Parse($logonStr)).ToString("yyyy-MM-dd HH:mm:ss.fff")
+                    LogonTime   = ([datetime]::Parse($logon)).ToString("yyyy-MM-dd HH:mm:ss.fff")
                 }
             }
             catch {
